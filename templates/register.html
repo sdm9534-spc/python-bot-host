@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flex Host - إنشاء حساب</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container { max-width: 450px; width: 100%; }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #fff;
+        }
+        
+        .logo h1 {
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .card h2 { color: #fff; text-align: center; margin-bottom: 30px; font-size: 1.8em; }
+        
+        .form-group { margin-bottom: 20px; }
+        
+        .form-group label { display: block; color: #ccc; margin-bottom: 8px; }
+        
+        .form-group input {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+        
+        .email-domain {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+        }
+        
+        .email-domain input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            border-radius: 0;
+        }
+        
+        .email-domain span {
+            padding: 0 15px;
+            color: #667eea;
+            font-weight: bold;
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: #fff;
+        }
+        
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
+        
+        .btn-random {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+        
+        .btn-random:hover { background: rgba(255, 255, 255, 0.15); }
+        
+        .alert { padding: 12px; border-radius: 10px; margin-bottom: 20px; text-align: center; }
+        .alert-error { background: rgba(220, 53, 69, 0.2); color: #dc3545; border: 1px solid #dc3545; }
+        .alert-success { background: rgba(40, 167, 69, 0.2); color: #28a745; border: 1px solid #28a745; }
+        
+        .link { text-align: center; margin-top: 20px; color: #aaa; }
+        .link a { color: #667eea; text-decoration: none; font-weight: bold; }
+        .link a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>⚡ Flex Host</h1>
+            <p>أنشئ حسابك وابدأ رحلة الاستضافة</p>
+        </div>
+        
+        <div class="card">
+            <h2>🆕 إنشاء حساب جديد</h2>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <button class="btn btn-random" onclick="generateEmail()">🎲 إنشاء إيميل عشوائي</button>
+            
+            <form method="POST" id="register-form">
+                <div class="form-group">
+                    <label>📧 البريد الإلكتروني</label>
+                    <div class="email-domain">
+                        <input type="text" name="email" id="email-input" 
+                               value="{{ random_email.split('@')[0] }}" placeholder="اسم المستخدم" required>
+                        <span>@flex.host</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>🔒 كلمة المرور</label>
+                    <input type="password" name="password" placeholder="6 أحرف على الأقل" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label>🔒 تأكيد كلمة المرور</label>
+                    <input type="password" name="confirm_password" placeholder="أعد كتابة كلمة المرور" required>
+                </div>
+                <button type="submit" class="btn btn-primary">✨ إنشاء الحساب</button>
+            </form>
+            
+            <div class="link">
+                لديك حساب بالفعل؟ <a href="{{ url_for('login') }}">تسجيل الدخول</a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function generateEmail() {
+            const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+            let username = '';
+            for (let i = 0; i < 12; i++) {
+                username += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('email-input').value = username;
+            
+            // تحديث القيمة في النموذج
+            document.querySelector('input[name="email"]').value = username + '@flex.host';
+        }
+        
+        // تحديث الإيميل الكامل عند التقديم
+        document.getElementById('register-form').addEventListener('submit', function(e) {
+            const username = document.getElementById('email-input').value;
+            document.querySelector('input[name="email"]').value = username + '@flex.host';
+        });
+    </script>
+</body>
+</html>
