@@ -1,0 +1,11 @@
+[providers]
+python = "3.11"
+
+[phases.setup]
+cmds = [
+    "pip install --upgrade pip",
+    "pip install -r requirements.txt"
+]
+
+[start]
+cmd = "gunicorn --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 0 app:app"
