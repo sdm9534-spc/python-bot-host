@@ -41,6 +41,8 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(200), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     user_folder = db.Column(db.String(100), unique=True, nullable=False)
+    # حفظ الجلسة النشطة
+    active_task_id = db.Column(db.String(100), nullable=True)
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -58,7 +60,7 @@ class ProcessManager:
         self.outputs = {}
         self.lock = threading.Lock()
     
-    def create_task(self, task_id):
+    def create_task(self, task_id, user_id=None):
         with self.lock:
             self.processes[task_id] = {
                 'process': None,
@@ -68,7 +70,7 @@ class ProcessManager:
                 'output': [],
                 'error': [],
                 'start_time': None,
-                'user_id': None
+                'user_id': user_id
             }
             self.outputs[task_id] = queue.Queue()
     
@@ -93,7 +95,8 @@ class ProcessManager:
                     'output': '\n'.join(proc['output']),
                     'error': '\n'.join(proc['error']),
                     'output_list': proc['output'],
-                    'error_list': proc['error']
+                    'error_list': proc['error'],
+                    'user_id': proc.get('user_id')
                 }
         return None
     
@@ -113,6 +116,29 @@ class ProcessManager:
                 proc['completed'] = True
                 proc['success'] = False
                 self.add_output(task_id, '\n⛔ تم إيقاف البوت يدوياً', True)
+    
+    def stop_all_user_tasks(self, user_id):
+        """إيقاف جميع بوتات مستخدم معين"""
+        stopped = 0
+        with self.lock:
+            for task_id, proc in list(self.processes.items()):
+                if proc.get('user_id') == user_id and proc.get('running'):
+                    self.stop_task(task_id)
+                    stopped += 1
+        return stopped
+    
+    def get_user_active_tasks(self, user_id):
+        """الحصول على المهام النشطة لمستخدم"""
+        active = []
+        with self.lock:
+            for task_id, proc in self.processes.items():
+                if proc.get('user_id') == user_id and proc.get('running'):
+                    active.append({
+                        'task_id': task_id,
+                        'start_time': proc.get('start_time'),
+                        'output_count': len(proc.get('output', []))
+                    })
+        return active
 
 process_manager = ProcessManager()
 
@@ -120,7 +146,9 @@ process_manager = ProcessManager()
 LIBRARY_MAPPING = {
     'telegram': 'python-telegram-bot',
     'telegram.ext': 'python-telegram-bot',
+    'telegram.update': 'python-telegram-bot',
     'discord': 'discord.py',
+    'discord.ext': 'discord.py',
     'PIL': 'pillow',
     'pil': 'pillow',
     'bs4': 'beautifulsoup4',
@@ -128,17 +156,175 @@ LIBRARY_MAPPING = {
     'sklearn': 'scikit-learn',
     'tensorflow': 'tensorflow',
     'torch': 'torch',
+    'google.cloud': 'google-cloud',
+    'google.generativeai': 'google-generativeai',
     'flask': 'flask',
     'fastapi': 'fastapi',
     'requests': 'requests',
     'aiohttp': 'aiohttp',
+    'websockets': 'websockets',
     'numpy': 'numpy',
     'pandas': 'pandas',
     'pymongo': 'pymongo',
     'redis': 'redis',
+    'sqlalchemy': 'sqlalchemy',
+    'psycopg2': 'psycopg2-binary',
+    'mysql': 'mysql-connector-python',
+    'mysqldb': 'mysqlclient',
+    'httpx': 'httpx',
+    'httplib2': 'httplib2',
+    'urllib3': 'urllib3',
+    'selenium': 'selenium',
+    'pyrogram': 'pyrogram',
+    'telethon': 'telethon',
+    'tweepy': 'tweepy',
+    'instabot': 'instabot',
+    'yt-dlp': 'yt-dlp',
+    'youtube_dl': 'youtube-dl',
     'openai': 'openai',
+    'anthropic': 'anthropic',
+    'colorama': 'colorama',
+    'rich': 'rich',
+    'loguru': 'loguru',
+    'dotenv': 'python-dotenv',
+    'pydantic': 'pydantic',
+    'cryptography': 'cryptography',
+    'pycryptodome': 'pycryptodome',
+    'Crypto': 'pycryptodome',
+    'crypto': 'pycryptodome',
+    'matplotlib': 'matplotlib',
+    'seaborn': 'seaborn',
+    'plotly': 'plotly',
+    'dash': 'dash',
+    'streamlit': 'streamlit',
+    'gradio': 'gradio',
+    'scipy': 'scipy',
+    'scikit-learn': 'scikit-learn',
+    'xgboost': 'xgboost',
+    'lightgbm': 'lightgbm',
+    'catboost': 'catboost',
     'transformers': 'transformers',
+    'datasets': 'datasets',
+    'tokenizers': 'tokenizers',
+    'accelerate': 'accelerate',
+    'sentencepiece': 'sentencepiece',
+    'protobuf': 'protobuf',
+    'tiktoken': 'tiktoken',
     'langchain': 'langchain',
+    'chromadb': 'chromadb',
+    'faiss': 'faiss-cpu',
+    'pinecone': 'pinecone-client',
+    'qdrant': 'qdrant-client',
+    'weaviate': 'weaviate-client',
+    'lancedb': 'lancedb',
+    'pypdf': 'pypdf',
+    'pypdf2': 'pypdf2',
+    'pdfplumber': 'pdfplumber',
+    'docx': 'python-docx',
+    'openpyxl': 'openpyxl',
+    'xlrd': 'xlrd',
+    'xlsxwriter': 'xlsxwriter',
+    'csv': 'csv',
+    'arrow': 'pyarrow',
+    'parquet': 'pyarrow',
+    'fastparquet': 'fastparquet',
+    'orjson': 'orjson',
+    'ujson': 'ujson',
+    'msgpack': 'msgpack',
+    'pyyaml': 'pyyaml',
+    'toml': 'toml',
+    'tomli': 'tomli',
+    'tomli_w': 'tomli-w',
+    'xml': 'lxml',
+    'lxml': 'lxml',
+    'html5lib': 'html5lib',
+    'beautifulsoup4': 'beautifulsoup4',
+    'scrapy': 'scrapy',
+    'playwright': 'playwright',
+    'asyncio': 'asyncio',
+    'aiofiles': 'aiofiles',
+    'aioamqp': 'aioamqp',
+    'aiokafka': 'aiokafka',
+    'aioredis': 'redis',
+    'aiosqlite': 'aiosqlite',
+    'asyncpg': 'asyncpg',
+    'motor': 'motor',
+    'asyncpraw': 'asyncpraw',
+    'twilio': 'twilio',
+    'sendgrid': 'sendgrid',
+    'boto3': 'boto3',
+    'botocore': 'botocore',
+    'awscli': 'awscli',
+    'google-cloud-storage': 'google-cloud-storage',
+    'google-cloud-bigquery': 'google-cloud-bigquery',
+    'google-cloud-pubsub': 'google-cloud-pubsub',
+    'google-cloud-firestore': 'google-cloud-firestore',
+    'azure-storage-blob': 'azure-storage-blob',
+    'azure-cosmos': 'azure-cosmos',
+    'azure-servicebus': 'azure-servicebus',
+    'celery': 'celery',
+    'kombu': 'kombu',
+    'pika': 'pika',
+    'kafka-python': 'kafka-python',
+    'confluent-kafka': 'confluent-kafka',
+    'schedule': 'schedule',
+    'apscheduler': 'apscheduler',
+    'croniter': 'croniter',
+    'python-crontab': 'python-crontab',
+    'watchdog': 'watchdog',
+    'inotify': 'inotify',
+    'pyinotify': 'pyinotify',
+    'watchfiles': 'watchfiles',
+    'uvicorn': 'uvicorn',
+    'gunicorn': 'gunicorn',
+    'waitress': 'waitress',
+    'hypercorn': 'hypercorn',
+    'daphne': 'daphne',
+    'uvloop': 'uvloop',
+    'socketio': 'python-socketio',
+    'flask-socketio': 'flask-socketio',
+    'django': 'django',
+    'starlette': 'starlette',
+    'sanic': 'sanic',
+    'tornado': 'tornado',
+    'quart': 'quart',
+    'falcon': 'falcon',
+    'bottle': 'bottle',
+    'cherrypy': 'cherrypy',
+    'pyramid': 'pyramid',
+    'jinja2': 'jinja2',
+    'mako': 'mako',
+    'chameleon': 'chameleon',
+    'cheetah': 'cheetah',
+    'textual': 'textual',
+    'blessed': 'blessed',
+    'blessings': 'blessings',
+    'click': 'click',
+    'fire': 'fire',
+    'typer': 'typer',
+    'argparse': 'argparse',
+    'docopt': 'docopt',
+    'plac': 'plac',
+    'cliff': 'cliff',
+    'cement': 'cement',
+    'prompt_toolkit': 'prompt-toolkit',
+    'questionary': 'questionary',
+    'inquirer': 'inquirer',
+    'pygments': 'pygments',
+    'tabulate': 'tabulate',
+    'prettytable': 'prettytable',
+    'texttable': 'texttable',
+    'termcolor': 'termcolor',
+    'colored': 'colored',
+    'ansicolors': 'ansicolors',
+    'colorlog': 'colorlog',
+    'tqdm': 'tqdm',
+    'progress': 'progress',
+    'progressbar': 'progressbar2',
+    'alive-progress': 'alive-progress',
+    'halo': 'halo',
+    'spinners': 'spinners',
+    'yaspin': 'yaspin',
 }
 
 # ==================== دوال مساعدة ====================
@@ -292,13 +478,19 @@ def run_bot(venv_path, file_path, task_id):
     finally:
         process_manager.processes[task_id]['completed'] = True
         process_manager.processes[task_id]['running'] = False
+        # تحديث حالة المستخدم في قاعدة البيانات
+        if process_manager.processes[task_id].get('user_id'):
+            user = User.query.get(process_manager.processes[task_id]['user_id'])
+            if user and user.active_task_id == task_id:
+                user.active_task_id = None
+                db.session.commit()
 
 # ==================== Flask-Login ====================
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# ==================== routes ====================
+# ==================== Routes ====================
 @app.route('/')
 def index():
     if current_user.is_authenticated:
@@ -336,7 +528,6 @@ def register():
         password = request.form.get('password', '')
         confirm = request.form.get('confirm_password', '')
         
-        # التحقق من صحة الإيميل
         if not email.endswith('@flex.host'):
             flash('❌ يجب أن يكون البريد الإلكتروني تابعاً لـ @flex.host', 'error')
             return render_template('register.html')
@@ -353,7 +544,6 @@ def register():
             flash('❌ هذا البريد الإلكتروني مستخدم بالفعل', 'error')
             return render_template('register.html')
         
-        # إنشاء المستخدم
         folder_name = str(uuid.uuid4())[:16]
         user = User(email=email, user_folder=folder_name)
         user.set_password(password)
@@ -361,20 +551,34 @@ def register():
         db.session.add(user)
         db.session.commit()
         
-        # إنشاء مجلد المستخدم
         os.makedirs(user.get_folder_path(), exist_ok=True)
         
         flash('✅ تم إنشاء الحساب بنجاح! يمكنك الآن تسجيل الدخول', 'success')
         return redirect(url_for('login'))
     
-    # إنشاء إيميل عشوائي
     random_email = f"user{uuid.uuid4().hex[:8]}@flex.host"
     return render_template('register.html', random_email=random_email)
 
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    return render_template('dashboard.html', user=current_user)
+    # جلب الجلسة النشطة للمستخدم
+    active_task_id = current_user.active_task_id
+    active_task_status = None
+    
+    if active_task_id:
+        active_task_status = process_manager.get_status(active_task_id)
+        # إذا البوت خلص، نحذف الجلسة
+        if active_task_status and active_task_status['completed']:
+            current_user.active_task_id = None
+            db.session.commit()
+            active_task_id = None
+            active_task_status = None
+    
+    return render_template('dashboard.html', 
+                         user=current_user,
+                         active_task_id=active_task_id,
+                         active_task_status=active_task_status)
 
 @app.route('/logout')
 @login_required
@@ -382,6 +586,29 @@ def logout():
     logout_user()
     flash('👋 تم تسجيل الخروج بنجاح', 'info')
     return redirect(url_for('login'))
+
+@app.route('/stop-all', methods=['POST'])
+@login_required
+def stop_all():
+    """إيقاف جميع بوتات المستخدم الحالي"""
+    stopped = process_manager.stop_all_user_tasks(current_user.id)
+    
+    # تحديث قاعدة البيانات
+    if current_user.active_task_id:
+        current_user.active_task_id = None
+        db.session.commit()
+    
+    return jsonify({
+        'message': f'تم إيقاف {stopped} بوت بنجاح',
+        'stopped': stopped
+    })
+
+@app.route('/active-tasks', methods=['GET'])
+@login_required
+def active_tasks():
+    """جلب المهام النشطة للمستخدم"""
+    tasks = process_manager.get_user_active_tasks(current_user.id)
+    return jsonify({'tasks': tasks, 'count': len(tasks)})
 
 @app.route('/upload', methods=['POST'])
 @login_required
@@ -396,17 +623,18 @@ def upload_file():
     task_id = str(uuid.uuid4())
     user_folder = current_user.get_folder_path()
     
-    # حفظ الملف في مجلد المستخدم
     file_path = os.path.join(user_folder, f"{task_id}_{secure_filename(file.filename)}")
     file.save(file_path)
     
-    # إعداد البيئة الافتراضية
     venv_path = os.path.join(user_folder, f'venv_{task_id}')
-    process_manager.create_task(task_id)
-    process_manager.processes[task_id]['user_id'] = current_user.id
+    process_manager.create_task(task_id, current_user.id)
     
     if not create_venv(venv_path):
         return jsonify({'error': 'فشل إنشاء البيئة'}), 500
+    
+    # حفظ الجلسة النشطة في قاعدة البيانات
+    current_user.active_task_id = task_id
+    db.session.commit()
     
     process_manager.add_output(task_id, '🔍 تحليل المكتبات...')
     libs = extract_imports_from_file(file_path)
@@ -462,7 +690,12 @@ def run_task(task_id):
     
     venv_path = os.path.join(user_folder, f'venv_{task_id}')
     
-    process_manager.create_task(task_id)
+    process_manager.create_task(task_id, current_user.id)
+    
+    # تحديث الجلسة النشطة
+    current_user.active_task_id = task_id
+    db.session.commit()
+    
     threading.Thread(target=run_bot, args=(venv_path, str(py_files[0]), task_id), daemon=True).start()
     
     return jsonify({'message': 'تم التشغيل'})
@@ -471,6 +704,11 @@ def run_task(task_id):
 @login_required
 def stop_task(task_id):
     process_manager.stop_task(task_id)
+    
+    if current_user.active_task_id == task_id:
+        current_user.active_task_id = None
+        db.session.commit()
+    
     return jsonify({'message': 'تم الإيقاف'})
 
 @app.route('/status/<task_id>')
