@@ -66,12 +66,12 @@ class User(UserMixin, db.Model):
     def get_folder_path(self):
         return os.path.join('user_files', self.user_folder)
 
-# ==================== إدارة العمليات (نسخة محسنة) ====================
+# ==================== إدارة العمليات ====================
 class ProcessManager:
     def __init__(self):
         self.processes = {}
         self.outputs = {}
-        self.lock = threading.RLock()  # Reentrant lock for better thread safety
+        self.lock = threading.RLock()
     
     def create_task(self, task_id, user_id=None):
         with self.lock:
@@ -107,7 +107,7 @@ class ProcessManager:
                     'running': proc['running'],
                     'completed': proc['completed'],
                     'success': proc['success'],
-                    'output': '\n'.join(proc['output'][-500:]),  # آخر 500 سطر
+                    'output': '\n'.join(proc['output'][-500:]),
                     'error': '\n'.join(proc['error'][-100:]),
                     'output_list': proc['output'][-500:],
                     'error_list': proc['error'][-100:],
@@ -116,7 +116,7 @@ class ProcessManager:
         return None
     
     def force_kill_process(self, task_id):
-        """قتل العملية بالقوة - بدون رحمة"""
+        """قتل العملية بالقوة"""
         with self.lock:
             if task_id not in self.processes:
                 return False
@@ -126,7 +126,6 @@ class ProcessManager:
             
             killed = False
             
-            # الطريقة 1: terminate ثم kill
             if process:
                 try:
                     process.terminate()
@@ -138,7 +137,6 @@ class ProcessManager:
                 except:
                     pass
                 
-                # الطريقة 2: SIGKILL مباشر
                 if process and process.poll() is None:
                     try:
                         os.kill(process.pid, signal.SIGKILL)
@@ -146,7 +144,6 @@ class ProcessManager:
                     except:
                         pass
             
-            # الطريقة 3: قتل باستخدام psutil
             if not killed:
                 try:
                     import psutil
@@ -155,8 +152,7 @@ class ProcessManager:
                         try:
                             cmdline = ' '.join(proc.info.get('cmdline', []))
                             pid = proc.info['pid']
-                            ppid = proc.info['ppid']
-                            # تجاهل العملية الحالية وعمليات النظام
+                            ppid = proc.info.get('ppid')
                             if pid == current_pid or ppid == current_pid:
                                 continue
                             if task_id in cmdline:
@@ -167,7 +163,6 @@ class ProcessManager:
                 except:
                     pass
             
-            # تحديث الحالة
             proc_data['running'] = False
             proc_data['completed'] = True
             proc_data['success'] = False
@@ -178,11 +173,9 @@ class ProcessManager:
             return killed
     
     def stop_task(self, task_id):
-        """إيقاف مهمة مع تنظيف كامل"""
         self.force_kill_process(task_id)
     
     def stop_all_user_tasks(self, user_id):
-        """إيقاف جميع مهام مستخدم"""
         stopped = 0
         with self.lock:
             for task_id in list(self.processes.keys()):
@@ -191,30 +184,17 @@ class ProcessManager:
                         self.force_kill_process(task_id)
                         stopped += 1
         return stopped
-    
-    def cleanup_old_tasks(self, max_age=3600):
-        """تنظيف المهام القديمة (أكبر من ساعة)"""
-        now = time.time()
-        with self.lock:
-            for task_id in list(self.processes.keys()):
-                proc = self.processes[task_id]
-                if not proc['running'] and (now - proc['start_time']) > max_age:
-                    self.processes.pop(task_id, None)
-                    self.outputs.pop(task_id, None)
 
 process_manager = ProcessManager()
 
-# مرجع عام للتنظيف
 process_manager_ref = {
     'processes': process_manager.processes
 }
 
-# تسجيل دالة التنظيف
 atexit.register(cleanup_on_exit)
 
-# ==================== قاموس المكتبات الموسع ====================
+# ==================== قاموس المكتبات ====================
 LIBRARY_MAPPING = {
-    # المكتبات الأساسية
     'telegram': 'python-telegram-bot',
     'telegram.ext': 'python-telegram-bot',
     'telegram.update': 'python-telegram-bot',
@@ -233,8 +213,6 @@ LIBRARY_MAPPING = {
     'dotenv': 'python-dotenv',
     'google.generativeai': 'google-generativeai',
     'google.cloud': 'google-cloud',
-    
-    # المكتبات المشهورة
     'flask': 'flask',
     'fastapi': 'fastapi',
     'django': 'django',
@@ -297,7 +275,6 @@ LIBRARY_MAPPING = {
     'python-dotenv': 'python-dotenv',
 }
 
-# المكتبات القياسية في Python
 STANDARD_LIBS = {
     'os', 'sys', 'time', 'json', 're', 'math', 'random', 'datetime',
     'collections', 'itertools', 'functools', 'threading', 'subprocess',
@@ -310,7 +287,7 @@ STANDARD_LIBS = {
     'argparse', 'getpass', 'getopt', 'operator', 'pprint', 'pickle',
     'sqlite3', 'unittest', 'doctest', 'profile', 'cProfile', 'contextlib',
     'importlib', 'pkgutil', 'venv', 'platform', 'ctypes', 'multiprocessing',
-    'concurrent', 'queue', 'asyncio', '_thread', '__future__'
+    'concurrent', 'queue', '_thread', '__future__'
 }
 
 # ==================== دوال مساعدة ====================
@@ -362,7 +339,7 @@ def get_python(venv_path):
     return os.path.join(venv_path, 'bin', 'python')
 
 def install_libs(venv_path, libraries, task_id):
-    """تثبيت المكتبات بسرعة"""
+    """تثبيت المكتبات"""
     pip = get_pip(venv_path)
     total = len(libraries)
     ok, bad = 0, []
@@ -386,7 +363,6 @@ def install_libs(venv_path, libraries, task_id):
                 ok += 1
                 process_manager.add_output(task_id, f'✅ {lib}')
             else:
-                # محاولة ثانية بدون quiet لرؤية الخطأ
                 result2 = subprocess.run([pip, 'install', actual, '--no-cache-dir'],
                                        capture_output=True, text=True, timeout=60)
                 if result2.returncode == 0:
@@ -422,7 +398,7 @@ def run_bot(venv_path, file_path, task_id):
             stderr=subprocess.PIPE,
             text=True, bufsize=1, universal_newlines=True,
             env={**os.environ, 'PYTHONUNBUFFERED': '1'},
-            preexec_fn=os.setsid if os.name != 'nt' else None  # مجموعة عمليات منفصلة
+            preexec_fn=os.setsid if os.name != 'nt' else None
         )
         
         with process_manager.lock:
@@ -447,7 +423,6 @@ def run_bot(venv_path, file_path, task_id):
         t1.start()
         t2.start()
         
-        # انتظار مع مراقبة
         while process.poll() is None:
             time.sleep(0.2)
             with process_manager.lock:
@@ -496,7 +471,6 @@ def run_bot(venv_path, file_path, task_id):
                 process_manager.processes[task_id]['completed'] = True
                 process_manager.processes[task_id]['process'] = None
         
-        # تحديث قاعدة البيانات
         try:
             with app.app_context():
                 users = User.query.filter_by(active_task_id=task_id).all()
@@ -579,6 +553,89 @@ def register():
     random_email = f"user{uuid.uuid4().hex[:8]}@flex.host"
     return render_template('register.html', random_email=random_email)
 
+@app.route('/user-files')
+@login_required
+def user_files():
+    """جلب قائمة ملفات المستخدم"""
+    user_folder = current_user.get_folder_path()
+    files = []
+    
+    if os.path.exists(user_folder):
+        for f in os.listdir(user_folder):
+            if f.endswith('.py'):
+                parts = f.split('_', 1)
+                task_id = parts[0] if len(parts) > 1 else None
+                original_name = '_'.join(parts[1:]) if len(parts) > 1 else f
+                
+                is_running = False
+                if task_id:
+                    status = process_manager.get_status(task_id)
+                    if status and status.get('running'):
+                        is_running = True
+                
+                file_path = os.path.join(user_folder, f)
+                file_size = os.path.getsize(file_path) if os.path.exists(file_path) else 0
+                
+                if file_size < 1024:
+                    size_str = f"{file_size} B"
+                elif file_size < 1024 * 1024:
+                    size_str = f"{file_size / 1024:.1f} KB"
+                else:
+                    size_str = f"{file_size / (1024 * 1024):.1f} MB"
+                
+                files.append({
+                    'name': original_name,
+                    'task_id': task_id,
+                    'running': is_running,
+                    'size': file_size,
+                    'size_formatted': size_str
+                })
+    
+    active_tasks = {}
+    with process_manager.lock:
+        for task_id, proc in process_manager.processes.items():
+            if proc.get('user_id') == current_user.id and proc.get('running'):
+                active_tasks[task_id] = True
+    
+    return jsonify({
+        'files': files,
+        'active_tasks': active_tasks
+    })
+
+@app.route('/delete-file/<task_id>', methods=['POST'])
+@login_required
+def delete_file(task_id):
+    """حذف ملف محدد"""
+    process_manager.stop_task(task_id)
+    
+    user_folder = current_user.get_folder_path()
+    deleted = False
+    
+    for f in Path(user_folder).glob(f'{task_id}_*'):
+        try:
+            if f.is_file():
+                f.unlink()
+                deleted = True
+        except:
+            pass
+    
+    venv_path = os.path.join(user_folder, f'venv_{task_id}')
+    if os.path.exists(venv_path):
+        try:
+            shutil.rmtree(venv_path, ignore_errors=True)
+        except:
+            pass
+    
+    if current_user.active_task_id == task_id:
+        current_user.active_task_id = None
+        db.session.commit()
+    
+    with process_manager.lock:
+        process_manager.processes.pop(task_id, None)
+        process_manager.outputs.pop(task_id, None)
+    
+    return jsonify({'message': 'تم الحذف', 'deleted': deleted})
+
 @app.route('/dashboard')
 @login_required
 def dashboard():
@@ -587,7 +644,6 @@ def dashboard():
 @app.route('/logout')
 @login_required
 def logout():
-    # إيقاف بوتات المستخدم قبل الخروج
     process_manager.stop_all_user_tasks(current_user.id)
     logout_user()
     flash('👋 تم تسجيل الخروج', 'info')
@@ -615,7 +671,6 @@ def upload_file():
     if not create_venv(venv_path):
         return jsonify({'error': 'فشل إنشاء البيئة'}), 500
     
-    # حفظ الجلسة
     current_user.active_task_id = task_id
     db.session.commit()
     
@@ -695,25 +750,20 @@ def run_task(task_id):
 @app.route('/stop/<task_id>', methods=['POST'])
 @login_required
 def stop_task(task_id):
-    """إيقاف البوت بالقوة - النسخة النووية 💣"""
-    
-    # 1- إيقاف من ProcessManager
+    """إيقاف البوت بالقوة"""
     process_manager.stop_task(task_id)
     
-    # 2- قتل العملية مباشرة
     with process_manager.lock:
         if task_id in process_manager.processes:
             proc_data = process_manager.processes[task_id]
             process = proc_data.get('process')
             if process:
-                # محاولة 1: terminate
                 try:
                     process.terminate()
                     time.sleep(0.5)
                 except:
                     pass
                 
-                # محاولة 2: kill
                 if process.poll() is None:
                     try:
                         process.kill()
@@ -721,7 +771,6 @@ def stop_task(task_id):
                     except:
                         pass
                 
-                # محاولة 3: SIGKILL مباشر
                 if process.poll() is None:
                     try:
                         os.kill(process.pid, signal.SIGKILL)
@@ -734,7 +783,6 @@ def stop_task(task_id):
             proc_data['completed'] = True
             proc_data['success'] = False
     
-    # 3- قتل أي عمليات متعلقة بالـ task_id
     try:
         import psutil
         current_pid = os.getpid()
@@ -744,7 +792,6 @@ def stop_task(task_id):
                 ppid = proc.info.get('ppid')
                 cmdline = ' '.join(proc.info.get('cmdline', []))
                 
-                # تجاهل العملية الحالية
                 if pid == current_pid or ppid == current_pid:
                     continue
                 
@@ -755,7 +802,6 @@ def stop_task(task_id):
     except:
         pass
     
-    # 4- تحديث قاعدة البيانات
     try:
         if current_user.active_task_id == task_id:
             current_user.active_task_id = None
@@ -815,32 +861,6 @@ def output_stream(task_id):
             time.sleep(0.3)
     
     return Response(generate(), mimetype='text/event-stream')
-
-@app.route('/cleanup/<task_id>', methods=['POST'])
-@login_required
-def cleanup(task_id):
-    process_manager.force_kill_process(task_id)
-    
-    task_dir = os.path.join(current_user.get_folder_path(), f'{task_id}_*')
-    for f in Path(current_user.get_folder_path()).glob(f'{task_id}_*'):
-        try:
-            if f.is_file():
-                f.unlink()
-        except:
-            pass
-    
-    venv_path = os.path.join(current_user.get_folder_path(), f'venv_{task_id}')
-    if os.path.exists(venv_path):
-        try:
-            shutil.rmtree(venv_path, ignore_errors=True)
-        except:
-            pass
-    
-    with process_manager.lock:
-        process_manager.processes.pop(task_id, None)
-        process_manager.outputs.pop(task_id, None)
-    
-    return jsonify({'message': 'تم التنظيف'})
 
 @app.route('/health')
 def health():
