@@ -7,6 +7,8 @@ import queue
 import time
 import shutil
 import re
+import signal
+import atexit
 from pathlib import Path
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify, Response, redirect, url_for, flash, session
@@ -16,23 +18,35 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import json
 
+# ==================== تنظيف عند الخروج ====================
+def cleanup_on_exit():
+    """تنظيف جميع العمليات عند إغلاق السيرفر"""
+    for task_id, proc_data in list(process_manager_ref.get('processes', {}).items()):
+        process = proc_data.get('process')
+        if process and proc_data.get('running'):
+            try:
+                process.terminate()
+                time.sleep(0.3)
+                if process.poll() is None:
+                    process.kill()
+            except:
+                pass
+
+# ==================== إعداد التطبيق ====================
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'super-secret-key-flex-host-2024')
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'flex-host-ultra-secure-key-2024')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024
 
-# تهيئة قاعدة البيانات
 db = SQLAlchemy(app)
-
-# تهيئة نظام تسجيل الدخول
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = '🔒 يرجى تسجيل الدخول أولاً'
 
-# إنشاء المجلدات
 os.makedirs('user_files', exist_ok=True)
+os.makedirs('uploads', exist_ok=True)
 
 # ==================== نموذج المستخدم ====================
 class User(UserMixin, db.Model):
@@ -41,7 +55,6 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(200), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     user_folder = db.Column(db.String(100), unique=True, nullable=False)
-    # حفظ الجلسة النشطة
     active_task_id = db.Column(db.String(100), nullable=True)
     
     def set_password(self, password):
@@ -53,12 +66,12 @@ class User(UserMixin, db.Model):
     def get_folder_path(self):
         return os.path.join('user_files', self.user_folder)
 
-# ==================== إدارة العمليات ====================
+# ==================== إدارة العمليات (نسخة محسنة) ====================
 class ProcessManager:
     def __init__(self):
         self.processes = {}
         self.outputs = {}
-        self.lock = threading.Lock()
+        self.lock = threading.RLock()  # Reentrant lock for better thread safety
     
     def create_task(self, task_id, user_id=None):
         with self.lock:
@@ -69,7 +82,7 @@ class ProcessManager:
                 'success': None,
                 'output': [],
                 'error': [],
-                'start_time': None,
+                'start_time': time.time(),
                 'user_id': user_id
             }
             self.outputs[task_id] = queue.Queue()
@@ -81,8 +94,10 @@ class ProcessManager:
                     self.processes[task_id]['error'].append(line)
                 else:
                     self.processes[task_id]['output'].append(line)
-                if task_id in self.outputs:
-                    self.outputs[task_id].put({'line': line, 'error': is_error})
+                try:
+                    self.outputs[task_id].put_nowait({'line': line, 'error': is_error})
+                except:
+                    pass
     
     def get_status(self, task_id):
         with self.lock:
@@ -92,58 +107,114 @@ class ProcessManager:
                     'running': proc['running'],
                     'completed': proc['completed'],
                     'success': proc['success'],
-                    'output': '\n'.join(proc['output']),
-                    'error': '\n'.join(proc['error']),
-                    'output_list': proc['output'],
-                    'error_list': proc['error'],
+                    'output': '\n'.join(proc['output'][-500:]),  # آخر 500 سطر
+                    'error': '\n'.join(proc['error'][-100:]),
+                    'output_list': proc['output'][-500:],
+                    'error_list': proc['error'][-100:],
                     'user_id': proc.get('user_id')
                 }
         return None
     
-    def stop_task(self, task_id):
+    def force_kill_process(self, task_id):
+        """قتل العملية بالقوة - بدون رحمة"""
         with self.lock:
-            if task_id in self.processes:
-                proc = self.processes[task_id]
-                if proc['process'] and proc['running']:
+            if task_id not in self.processes:
+                return False
+            
+            proc_data = self.processes[task_id]
+            process = proc_data.get('process')
+            
+            killed = False
+            
+            # الطريقة 1: terminate ثم kill
+            if process:
+                try:
+                    process.terminate()
+                    time.sleep(0.3)
+                    if process.poll() is None:
+                        process.kill()
+                        time.sleep(0.2)
+                    killed = True
+                except:
+                    pass
+                
+                # الطريقة 2: SIGKILL مباشر
+                if process and process.poll() is None:
                     try:
-                        proc['process'].terminate()
-                        time.sleep(0.5)
-                        if proc['process'].poll() is None:
-                            proc['process'].kill()
+                        os.kill(process.pid, signal.SIGKILL)
+                        killed = True
                     except:
                         pass
-                proc['running'] = False
-                proc['completed'] = True
-                proc['success'] = False
-                self.add_output(task_id, '\n⛔ تم إيقاف البوت يدوياً', True)
+            
+            # الطريقة 3: قتل باستخدام psutil
+            if not killed:
+                try:
+                    import psutil
+                    current_pid = os.getpid()
+                    for proc in psutil.process_iter(['pid', 'cmdline', 'ppid']):
+                        try:
+                            cmdline = ' '.join(proc.info.get('cmdline', []))
+                            pid = proc.info['pid']
+                            ppid = proc.info['ppid']
+                            # تجاهل العملية الحالية وعمليات النظام
+                            if pid == current_pid or ppid == current_pid:
+                                continue
+                            if task_id in cmdline:
+                                os.kill(pid, signal.SIGKILL)
+                                killed = True
+                        except:
+                            pass
+                except:
+                    pass
+            
+            # تحديث الحالة
+            proc_data['running'] = False
+            proc_data['completed'] = True
+            proc_data['success'] = False
+            proc_data['process'] = None
+            
+            self.add_output(task_id, '\n⛔ تم إيقاف البوت بالقوة', True)
+            
+            return killed
+    
+    def stop_task(self, task_id):
+        """إيقاف مهمة مع تنظيف كامل"""
+        self.force_kill_process(task_id)
     
     def stop_all_user_tasks(self, user_id):
-        """إيقاف جميع بوتات مستخدم معين"""
+        """إيقاف جميع مهام مستخدم"""
         stopped = 0
         with self.lock:
-            for task_id, proc in list(self.processes.items()):
-                if proc.get('user_id') == user_id and proc.get('running'):
-                    self.stop_task(task_id)
-                    stopped += 1
+            for task_id in list(self.processes.keys()):
+                if self.processes[task_id].get('user_id') == user_id:
+                    if self.processes[task_id].get('running'):
+                        self.force_kill_process(task_id)
+                        stopped += 1
         return stopped
     
-    def get_user_active_tasks(self, user_id):
-        """الحصول على المهام النشطة لمستخدم"""
-        active = []
+    def cleanup_old_tasks(self, max_age=3600):
+        """تنظيف المهام القديمة (أكبر من ساعة)"""
+        now = time.time()
         with self.lock:
-            for task_id, proc in self.processes.items():
-                if proc.get('user_id') == user_id and proc.get('running'):
-                    active.append({
-                        'task_id': task_id,
-                        'start_time': proc.get('start_time'),
-                        'output_count': len(proc.get('output', []))
-                    })
-        return active
+            for task_id in list(self.processes.keys()):
+                proc = self.processes[task_id]
+                if not proc['running'] and (now - proc['start_time']) > max_age:
+                    self.processes.pop(task_id, None)
+                    self.outputs.pop(task_id, None)
 
 process_manager = ProcessManager()
 
-# ==================== قاموس المكتبات ====================
+# مرجع عام للتنظيف
+process_manager_ref = {
+    'processes': process_manager.processes
+}
+
+# تسجيل دالة التنظيف
+atexit.register(cleanup_on_exit)
+
+# ==================== قاموس المكتبات الموسع ====================
 LIBRARY_MAPPING = {
+    # المكتبات الأساسية
     'telegram': 'python-telegram-bot',
     'telegram.ext': 'python-telegram-bot',
     'telegram.update': 'python-telegram-bot',
@@ -154,224 +225,132 @@ LIBRARY_MAPPING = {
     'bs4': 'beautifulsoup4',
     'cv2': 'opencv-python',
     'sklearn': 'scikit-learn',
-    'tensorflow': 'tensorflow',
-    'torch': 'torch',
-    'google.cloud': 'google-cloud',
+    'Crypto': 'pycryptodome',
+    'crypto': 'pycryptodome',
+    'mysql': 'mysql-connector-python',
+    'mysqldb': 'mysqlclient',
+    'yaml': 'pyyaml',
+    'dotenv': 'python-dotenv',
     'google.generativeai': 'google-generativeai',
+    'google.cloud': 'google-cloud',
+    
+    # المكتبات المشهورة
     'flask': 'flask',
     'fastapi': 'fastapi',
+    'django': 'django',
     'requests': 'requests',
     'aiohttp': 'aiohttp',
+    'httpx': 'httpx',
     'websockets': 'websockets',
     'numpy': 'numpy',
     'pandas': 'pandas',
+    'matplotlib': 'matplotlib',
+    'seaborn': 'seaborn',
+    'plotly': 'plotly',
+    'scipy': 'scipy',
+    'tensorflow': 'tensorflow',
+    'torch': 'torch',
+    'transformers': 'transformers',
+    'openai': 'openai',
+    'anthropic': 'anthropic',
+    'langchain': 'langchain',
     'pymongo': 'pymongo',
     'redis': 'redis',
     'sqlalchemy': 'sqlalchemy',
     'psycopg2': 'psycopg2-binary',
-    'mysql': 'mysql-connector-python',
-    'mysqldb': 'mysqlclient',
-    'httpx': 'httpx',
-    'httplib2': 'httplib2',
-    'urllib3': 'urllib3',
     'selenium': 'selenium',
+    'playwright': 'playwright',
     'pyrogram': 'pyrogram',
     'telethon': 'telethon',
     'tweepy': 'tweepy',
-    'instabot': 'instabot',
     'yt-dlp': 'yt-dlp',
     'youtube_dl': 'youtube-dl',
-    'openai': 'openai',
-    'anthropic': 'anthropic',
     'colorama': 'colorama',
     'rich': 'rich',
-    'loguru': 'loguru',
-    'dotenv': 'python-dotenv',
+    'tqdm': 'tqdm',
     'pydantic': 'pydantic',
     'cryptography': 'cryptography',
-    'pycryptodome': 'pycryptodome',
-    'Crypto': 'pycryptodome',
-    'crypto': 'pycryptodome',
-    'matplotlib': 'matplotlib',
-    'seaborn': 'seaborn',
-    'plotly': 'plotly',
+    'uvicorn': 'uvicorn',
+    'gunicorn': 'gunicorn',
+    'boto3': 'boto3',
+    'celery': 'celery',
     'dash': 'dash',
     'streamlit': 'streamlit',
     'gradio': 'gradio',
-    'scipy': 'scipy',
-    'scikit-learn': 'scikit-learn',
-    'xgboost': 'xgboost',
-    'lightgbm': 'lightgbm',
-    'catboost': 'catboost',
-    'transformers': 'transformers',
-    'datasets': 'datasets',
-    'tokenizers': 'tokenizers',
-    'accelerate': 'accelerate',
-    'sentencepiece': 'sentencepiece',
-    'protobuf': 'protobuf',
-    'tiktoken': 'tiktoken',
-    'langchain': 'langchain',
-    'chromadb': 'chromadb',
-    'faiss': 'faiss-cpu',
-    'pinecone': 'pinecone-client',
-    'qdrant': 'qdrant-client',
-    'weaviate': 'weaviate-client',
-    'lancedb': 'lancedb',
+    'scrapy': 'scrapy',
+    'jinja2': 'jinja2',
+    'click': 'click',
+    'typer': 'typer',
+    'loguru': 'loguru',
     'pypdf': 'pypdf',
     'pypdf2': 'pypdf2',
-    'pdfplumber': 'pdfplumber',
     'docx': 'python-docx',
     'openpyxl': 'openpyxl',
     'xlrd': 'xlrd',
-    'xlsxwriter': 'xlsxwriter',
-    'csv': 'csv',
-    'arrow': 'pyarrow',
-    'parquet': 'pyarrow',
-    'fastparquet': 'fastparquet',
-    'orjson': 'orjson',
-    'ujson': 'ujson',
-    'msgpack': 'msgpack',
-    'pyyaml': 'pyyaml',
-    'toml': 'toml',
-    'tomli': 'tomli',
-    'tomli_w': 'tomli-w',
-    'xml': 'lxml',
     'lxml': 'lxml',
-    'html5lib': 'html5lib',
     'beautifulsoup4': 'beautifulsoup4',
-    'scrapy': 'scrapy',
-    'playwright': 'playwright',
-    'asyncio': 'asyncio',
-    'aiofiles': 'aiofiles',
-    'aioamqp': 'aioamqp',
-    'aiokafka': 'aiokafka',
-    'aioredis': 'redis',
-    'aiosqlite': 'aiosqlite',
-    'asyncpg': 'asyncpg',
-    'motor': 'motor',
-    'asyncpraw': 'asyncpraw',
-    'twilio': 'twilio',
-    'sendgrid': 'sendgrid',
-    'boto3': 'boto3',
-    'botocore': 'botocore',
-    'awscli': 'awscli',
-    'google-cloud-storage': 'google-cloud-storage',
-    'google-cloud-bigquery': 'google-cloud-bigquery',
-    'google-cloud-pubsub': 'google-cloud-pubsub',
-    'google-cloud-firestore': 'google-cloud-firestore',
-    'azure-storage-blob': 'azure-storage-blob',
-    'azure-cosmos': 'azure-cosmos',
-    'azure-servicebus': 'azure-servicebus',
-    'celery': 'celery',
-    'kombu': 'kombu',
-    'pika': 'pika',
-    'kafka-python': 'kafka-python',
-    'confluent-kafka': 'confluent-kafka',
     'schedule': 'schedule',
     'apscheduler': 'apscheduler',
-    'croniter': 'croniter',
-    'python-crontab': 'python-crontab',
     'watchdog': 'watchdog',
-    'inotify': 'inotify',
-    'pyinotify': 'pyinotify',
-    'watchfiles': 'watchfiles',
-    'uvicorn': 'uvicorn',
-    'gunicorn': 'gunicorn',
-    'waitress': 'waitress',
-    'hypercorn': 'hypercorn',
-    'daphne': 'daphne',
-    'uvloop': 'uvloop',
-    'socketio': 'python-socketio',
-    'flask-socketio': 'flask-socketio',
-    'django': 'django',
-    'starlette': 'starlette',
-    'sanic': 'sanic',
-    'tornado': 'tornado',
-    'quart': 'quart',
-    'falcon': 'falcon',
-    'bottle': 'bottle',
-    'cherrypy': 'cherrypy',
-    'pyramid': 'pyramid',
-    'jinja2': 'jinja2',
-    'mako': 'mako',
-    'chameleon': 'chameleon',
-    'cheetah': 'cheetah',
-    'textual': 'textual',
-    'blessed': 'blessed',
-    'blessings': 'blessings',
-    'click': 'click',
-    'fire': 'fire',
-    'typer': 'typer',
-    'argparse': 'argparse',
-    'docopt': 'docopt',
-    'plac': 'plac',
-    'cliff': 'cliff',
-    'cement': 'cement',
-    'prompt_toolkit': 'prompt-toolkit',
-    'questionary': 'questionary',
-    'inquirer': 'inquirer',
     'pygments': 'pygments',
     'tabulate': 'tabulate',
-    'prettytable': 'prettytable',
-    'texttable': 'texttable',
-    'termcolor': 'termcolor',
-    'colored': 'colored',
-    'ansicolors': 'ansicolors',
-    'colorlog': 'colorlog',
-    'tqdm': 'tqdm',
-    'progress': 'progress',
-    'progressbar': 'progressbar2',
-    'alive-progress': 'alive-progress',
-    'halo': 'halo',
-    'spinners': 'spinners',
-    'yaspin': 'yaspin',
+    'python-dotenv': 'python-dotenv',
+}
+
+# المكتبات القياسية في Python
+STANDARD_LIBS = {
+    'os', 'sys', 'time', 'json', 're', 'math', 'random', 'datetime',
+    'collections', 'itertools', 'functools', 'threading', 'subprocess',
+    'pathlib', 'typing', 'io', 'string', 'hashlib', 'base64', 'uuid',
+    'logging', 'traceback', 'ast', 'abc', 'asyncio', 'inspect', 'warnings',
+    'weakref', 'copy', 'enum', 'socket', 'ssl', 'email', 'http', 'urllib',
+    'xml', 'html', 'csv', 'configparser', 'dataclasses', 'decimal',
+    'fractions', 'statistics', 'textwrap', 'struct', 'signal', 'atexit',
+    'shutil', 'glob', 'fnmatch', 'tempfile', 'zipfile', 'tarfile',
+    'argparse', 'getpass', 'getopt', 'operator', 'pprint', 'pickle',
+    'sqlite3', 'unittest', 'doctest', 'profile', 'cProfile', 'contextlib',
+    'importlib', 'pkgutil', 'venv', 'platform', 'ctypes', 'multiprocessing',
+    'concurrent', 'queue', 'asyncio', '_thread', '__future__'
 }
 
 # ==================== دوال مساعدة ====================
 def extract_imports_from_file(file_path):
-    """استخراج المكتبات المطلوبة"""
+    """استخراج المكتبات المطلوبة من ملف Python"""
     imports = set()
-    standard_libs = {'os', 'sys', 'time', 'json', 're', 'math', 'random', 
-                     'datetime', 'collections', 'itertools', 'threading', 
-                     'subprocess', 'pathlib', 'typing', 'io', 'string', 
-                     'hashlib', 'base64', 'uuid', 'logging', 'traceback',
-                     'ast', 'abc', 'asyncio', 'functools', 'inspect',
-                     'warnings', 'weakref', 'copy', 'enum', 'socket',
-                     'ssl', 'email', 'http', 'urllib', 'xml', 'html',
-                     'csv', 'configparser', 'dataclasses', 'decimal',
-                     'fractions', 'statistics', 'textwrap', 'struct'}
     
     try:
         with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
             content = f.read()
         
-        import ast
-        tree = ast.parse(content)
+        import ast as ast_module
+        tree = ast_module.parse(content)
         
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Import):
+        for node in ast_module.walk(tree):
+            if isinstance(node, ast_module.Import):
                 for alias in node.names:
                     imports.add(alias.name.split('.')[0])
-            elif isinstance(node, ast.ImportFrom):
+            elif isinstance(node, ast_module.ImportFrom):
                 if node.module:
                     imports.add(node.module.split('.')[0])
     except:
         import re
         with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
             content = f.read()
+        
         import_pattern = r'(?:from\s+(\S+)\s+import|import\s+(\S+))'
         matches = re.findall(import_pattern, content)
         for match in matches:
             module = match[0] or match[1]
-            imports.add(module.split('.')[0])
+            if module:
+                imports.add(module.split('.')[0])
     
-    return list(imports - standard_libs)
+    return list(imports - STANDARD_LIBS)
 
 def create_venv(venv_path):
     """إنشاء بيئة افتراضية"""
     try:
         subprocess.check_call([sys.executable, '-m', 'venv', venv_path],
-                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=30)
         return True
     except:
         return False
@@ -383,47 +362,57 @@ def get_python(venv_path):
     return os.path.join(venv_path, 'bin', 'python')
 
 def install_libs(venv_path, libraries, task_id):
-    """تثبيت المكتبات"""
+    """تثبيت المكتبات بسرعة"""
     pip = get_pip(venv_path)
     total = len(libraries)
     ok, bad = 0, []
     
     process_manager.add_output(task_id, '🔄 تحديث pip...')
     try:
-        subprocess.check_call([pip, 'install', '--upgrade', 'pip'],
-                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=60)
+        subprocess.run([pip, 'install', '--upgrade', 'pip', '--quiet'],
+                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=30)
         process_manager.add_output(task_id, '✅ تم تحديث pip')
     except:
-        pass
+        process_manager.add_output(task_id, '⚠️ تعذر تحديث pip')
     
     for i, lib in enumerate(libraries, 1):
-        process_manager.add_output(task_id, f'📦 تثبيت ({i}/{total}): {lib}')
+        process_manager.add_output(task_id, f'📦 ({i}/{total}) {lib}')
         actual = LIBRARY_MAPPING.get(lib, lib)
         
         try:
-            result = subprocess.run([pip, 'install', actual, '--no-cache-dir'],
-                                  capture_output=True, text=True, timeout=120)
+            result = subprocess.run([pip, 'install', actual, '--no-cache-dir', '--quiet'],
+                                  capture_output=True, text=True, timeout=60)
             if result.returncode == 0:
                 ok += 1
                 process_manager.add_output(task_id, f'✅ {lib}')
             else:
-                bad.append(lib)
-                process_manager.add_output(task_id, f'❌ {lib}', True)
+                # محاولة ثانية بدون quiet لرؤية الخطأ
+                result2 = subprocess.run([pip, 'install', actual, '--no-cache-dir'],
+                                       capture_output=True, text=True, timeout=60)
+                if result2.returncode == 0:
+                    ok += 1
+                    process_manager.add_output(task_id, f'✅ {lib}')
+                else:
+                    bad.append(lib)
+                    error_msg = result2.stderr.split('\n')[-2] if result2.stderr else 'Unknown error'
+                    process_manager.add_output(task_id, f'❌ {lib}: {error_msg[:100]}', True)
+        except subprocess.TimeoutExpired:
+            bad.append(lib)
+            process_manager.add_output(task_id, f'⏰ {lib}: timeout', True)
         except Exception as e:
             bad.append(lib)
-            process_manager.add_output(task_id, f'❌ {lib}: {str(e)}', True)
+            process_manager.add_output(task_id, f'❌ {lib}: {str(e)[:100]}', True)
     
-    process_manager.add_output(task_id, f'\n📊 نجح: {ok}/{total}')
-    if bad:
-        process_manager.add_output(task_id, f'❌ فشل: {", ".join(bad)}', True)
-    
+    process_manager.add_output(task_id, f'\n📊 نجح: {ok}/{total}' + (f' | فشل: {len(bad)}' if bad else ''))
     return ok, bad
 
 def run_bot(venv_path, file_path, task_id):
-    """تشغيل البوت"""
+    """تشغيل البوت في بيئة معزولة"""
     python = get_python(venv_path)
+    
     process_manager.add_output(task_id, '\n' + '='*50)
-    process_manager.add_output(task_id, '🚀 تشغيل البوت...')
+    process_manager.add_output(task_id, '🚀 بدء تشغيل البوت...')
+    process_manager.add_output(task_id, f'📂 {os.path.basename(file_path)}')
     process_manager.add_output(task_id, '='*50 + '\n')
     
     try:
@@ -432,58 +421,90 @@ def run_bot(venv_path, file_path, task_id):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True, bufsize=1, universal_newlines=True,
-            env={**os.environ, 'PYTHONUNBUFFERED': '1'}
+            env={**os.environ, 'PYTHONUNBUFFERED': '1'},
+            preexec_fn=os.setsid if os.name != 'nt' else None  # مجموعة عمليات منفصلة
         )
         
-        process_manager.processes[task_id]['process'] = process
-        process_manager.processes[task_id]['running'] = True
+        with process_manager.lock:
+            if task_id in process_manager.processes:
+                process_manager.processes[task_id]['process'] = process
+                process_manager.processes[task_id]['running'] = True
+                process_manager.processes[task_id]['start_time'] = time.time()
         
-        def read_stdout():
-            for line in iter(process.stdout.readline, ''):
-                if line and process_manager.processes[task_id]['running']:
-                    process_manager.add_output(task_id, line.rstrip())
+        def read_stream(stream, is_error=False):
+            for line in iter(stream.readline, ''):
+                if not line:
+                    break
+                with process_manager.lock:
+                    if task_id not in process_manager.processes:
+                        break
+                    if not process_manager.processes[task_id].get('running', False):
+                        break
+                process_manager.add_output(task_id, line.rstrip(), is_error)
         
-        def read_stderr():
-            for line in iter(process.stderr.readline, ''):
-                if line and process_manager.processes[task_id]['running']:
-                    process_manager.add_output(task_id, line.rstrip(), True)
+        t1 = threading.Thread(target=read_stream, args=(process.stdout, False), daemon=True)
+        t2 = threading.Thread(target=read_stream, args=(process.stderr, True), daemon=True)
+        t1.start()
+        t2.start()
         
-        t1 = threading.Thread(target=read_stdout, daemon=True)
-        t2 = threading.Thread(target=read_stderr, daemon=True)
-        t1.start(); t2.start()
-        
+        # انتظار مع مراقبة
         while process.poll() is None:
-            if not process_manager.processes[task_id]['running']:
-                process.terminate()
-                time.sleep(0.5)
-                if process.poll() is None:
-                    process.kill()
-                break
-            time.sleep(0.1)
+            time.sleep(0.2)
+            with process_manager.lock:
+                if task_id not in process_manager.processes:
+                    break
+                if not process_manager.processes[task_id].get('running', False):
+                    process.terminate()
+                    time.sleep(0.3)
+                    if process.poll() is None:
+                        process.kill()
+                    break
         
-        code = process.returncode
+        t1.join(timeout=3)
+        t2.join(timeout=3)
+        
+        return_code = process.returncode
+        
         process_manager.add_output(task_id, '\n' + '='*50)
-        if code == 0:
-            process_manager.add_output(task_id, '✅ تم بنجاح')
-            process_manager.processes[task_id]['success'] = True
+        if return_code == 0:
+            process_manager.add_output(task_id, '✅ انتهى البوت بنجاح')
+            with process_manager.lock:
+                if task_id in process_manager.processes:
+                    process_manager.processes[task_id]['success'] = True
+        elif return_code is None:
+            process_manager.add_output(task_id, '⛔ تم إيقاف البوت', True)
+            with process_manager.lock:
+                if task_id in process_manager.processes:
+                    process_manager.processes[task_id]['success'] = False
         else:
-            process_manager.add_output(task_id, f'❌ رمز الخطأ: {code}', True)
-            process_manager.processes[task_id]['success'] = False
+            process_manager.add_output(task_id, f'❌ خرج البوت مع رمز: {return_code}', True)
+            with process_manager.lock:
+                if task_id in process_manager.processes:
+                    process_manager.processes[task_id]['success'] = False
         process_manager.add_output(task_id, '='*50)
         
     except Exception as e:
-        process_manager.add_output(task_id, f'❌ خطأ: {str(e)}', True)
-        process_manager.processes[task_id]['success'] = False
+        process_manager.add_output(task_id, f'\n❌ خطأ في التشغيل: {str(e)}', True)
+        with process_manager.lock:
+            if task_id in process_manager.processes:
+                process_manager.processes[task_id]['success'] = False
     
     finally:
-        process_manager.processes[task_id]['completed'] = True
-        process_manager.processes[task_id]['running'] = False
-        # تحديث حالة المستخدم في قاعدة البيانات
-        if process_manager.processes[task_id].get('user_id'):
-            user = User.query.get(process_manager.processes[task_id]['user_id'])
-            if user and user.active_task_id == task_id:
-                user.active_task_id = None
+        with process_manager.lock:
+            if task_id in process_manager.processes:
+                process_manager.processes[task_id]['running'] = False
+                process_manager.processes[task_id]['completed'] = True
+                process_manager.processes[task_id]['process'] = None
+        
+        # تحديث قاعدة البيانات
+        try:
+            with app.app_context():
+                users = User.query.filter_by(active_task_id=task_id).all()
+                for user in users:
+                    user.active_task_id = None
                 db.session.commit()
+        except:
+            pass
 
 # ==================== Flask-Login ====================
 @login_manager.user_loader
@@ -511,8 +532,7 @@ def login():
         if user and user.check_password(password):
             login_user(user, remember=True)
             flash('✅ تم تسجيل الدخول بنجاح!', 'success')
-            next_page = request.args.get('next')
-            return redirect(next_page or url_for('dashboard'))
+            return redirect(url_for('dashboard'))
         else:
             flash('❌ البريد الإلكتروني أو كلمة المرور غير صحيحة', 'error')
     
@@ -529,7 +549,7 @@ def register():
         confirm = request.form.get('confirm_password', '')
         
         if not email.endswith('@flex.host'):
-            flash('❌ يجب أن يكون البريد الإلكتروني تابعاً لـ @flex.host', 'error')
+            flash('❌ يجب أن يكون البريد الإلكتروني @flex.host', 'error')
             return render_template('register.html')
         
         if password != confirm:
@@ -537,11 +557,11 @@ def register():
             return render_template('register.html')
         
         if len(password) < 6:
-            flash('❌ كلمة المرور يجب أن تكون 6 أحرف على الأقل', 'error')
+            flash('❌ كلمة المرور 6 أحرف على الأقل', 'error')
             return render_template('register.html')
         
         if User.query.filter_by(email=email).first():
-            flash('❌ هذا البريد الإلكتروني مستخدم بالفعل', 'error')
+            flash('❌ البريد مستخدم بالفعل', 'error')
             return render_template('register.html')
         
         folder_name = str(uuid.uuid4())[:16]
@@ -553,7 +573,7 @@ def register():
         
         os.makedirs(user.get_folder_path(), exist_ok=True)
         
-        flash('✅ تم إنشاء الحساب بنجاح! يمكنك الآن تسجيل الدخول', 'success')
+        flash('✅ تم إنشاء الحساب بنجاح!', 'success')
         return redirect(url_for('login'))
     
     random_email = f"user{uuid.uuid4().hex[:8]}@flex.host"
@@ -562,63 +582,26 @@ def register():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    # جلب الجلسة النشطة للمستخدم
-    active_task_id = current_user.active_task_id
-    active_task_status = None
-    
-    if active_task_id:
-        active_task_status = process_manager.get_status(active_task_id)
-        # إذا البوت خلص، نحذف الجلسة
-        if active_task_status and active_task_status['completed']:
-            current_user.active_task_id = None
-            db.session.commit()
-            active_task_id = None
-            active_task_status = None
-    
-    return render_template('dashboard.html', 
-                         user=current_user,
-                         active_task_id=active_task_id,
-                         active_task_status=active_task_status)
+    return render_template('dashboard.html', user=current_user)
 
 @app.route('/logout')
 @login_required
 def logout():
+    # إيقاف بوتات المستخدم قبل الخروج
+    process_manager.stop_all_user_tasks(current_user.id)
     logout_user()
-    flash('👋 تم تسجيل الخروج بنجاح', 'info')
+    flash('👋 تم تسجيل الخروج', 'info')
     return redirect(url_for('login'))
-
-@app.route('/stop-all', methods=['POST'])
-@login_required
-def stop_all():
-    """إيقاف جميع بوتات المستخدم الحالي"""
-    stopped = process_manager.stop_all_user_tasks(current_user.id)
-    
-    # تحديث قاعدة البيانات
-    if current_user.active_task_id:
-        current_user.active_task_id = None
-        db.session.commit()
-    
-    return jsonify({
-        'message': f'تم إيقاف {stopped} بوت بنجاح',
-        'stopped': stopped
-    })
-
-@app.route('/active-tasks', methods=['GET'])
-@login_required
-def active_tasks():
-    """جلب المهام النشطة للمستخدم"""
-    tasks = process_manager.get_user_active_tasks(current_user.id)
-    return jsonify({'tasks': tasks, 'count': len(tasks)})
 
 @app.route('/upload', methods=['POST'])
 @login_required
 def upload_file():
     if 'file' not in request.files:
-        return jsonify({'error': 'لم يتم رفع أي ملف'}), 400
+        return jsonify({'error': 'لم يتم رفع ملف'}), 400
     
     file = request.files['file']
-    if file.filename == '' or not file.filename.endswith('.py'):
-        return jsonify({'error': 'يجب رفع ملف Python'}), 400
+    if not file.filename or not file.filename.endswith('.py'):
+        return jsonify({'error': 'ملف Python فقط'}), 400
     
     task_id = str(uuid.uuid4())
     user_folder = current_user.get_folder_path()
@@ -632,7 +615,7 @@ def upload_file():
     if not create_venv(venv_path):
         return jsonify({'error': 'فشل إنشاء البيئة'}), 500
     
-    # حفظ الجلسة النشطة في قاعدة البيانات
+    # حفظ الجلسة
     current_user.active_task_id = task_id
     db.session.commit()
     
@@ -641,6 +624,8 @@ def upload_file():
     
     if libs:
         process_manager.add_output(task_id, f'📚 المكتبات: {", ".join(libs)}')
+    else:
+        process_manager.add_output(task_id, 'ℹ️ لا توجد مكتبات خارجية')
     
     auto_run = request.form.get('auto_run', 'true') == 'true'
     
@@ -650,7 +635,7 @@ def upload_file():
     
     return jsonify({
         'task_id': task_id,
-        'message': 'تم رفع الملف بنجاح',
+        'message': 'تم رفع الملف',
         'filename': file.filename,
         'libraries': libs
     })
@@ -667,12 +652,16 @@ def process_and_run(task_id, venv_path, file_path, libs, auto_run):
             run_bot(venv_path, file_path, task_id)
         else:
             process_manager.add_output(task_id, '\n✅ جاهز. اضغط تشغيل للبدء')
-            process_manager.processes[task_id]['completed'] = True
-            process_manager.processes[task_id]['success'] = True
+            with process_manager.lock:
+                if task_id in process_manager.processes:
+                    process_manager.processes[task_id]['completed'] = True
+                    process_manager.processes[task_id]['success'] = True
     except Exception as e:
         process_manager.add_output(task_id, f'\n❌ خطأ: {str(e)}', True)
-        process_manager.processes[task_id]['completed'] = True
-        process_manager.processes[task_id]['success'] = False
+        with process_manager.lock:
+            if task_id in process_manager.processes:
+                process_manager.processes[task_id]['completed'] = True
+                process_manager.processes[task_id]['success'] = False
 
 @app.route('/run/<task_id>', methods=['POST'])
 @login_required
@@ -690,9 +679,12 @@ def run_task(task_id):
     
     venv_path = os.path.join(user_folder, f'venv_{task_id}')
     
-    process_manager.create_task(task_id, current_user.id)
+    with process_manager.lock:
+        if task_id in process_manager.processes:
+            process_manager.processes[task_id]['running'] = False
+            process_manager.processes[task_id]['completed'] = False
     
-    # تحديث الجلسة النشطة
+    process_manager.create_task(task_id, current_user.id)
     current_user.active_task_id = task_id
     db.session.commit()
     
@@ -703,13 +695,90 @@ def run_task(task_id):
 @app.route('/stop/<task_id>', methods=['POST'])
 @login_required
 def stop_task(task_id):
+    """إيقاف البوت بالقوة - النسخة النووية 💣"""
+    
+    # 1- إيقاف من ProcessManager
     process_manager.stop_task(task_id)
     
-    if current_user.active_task_id == task_id:
+    # 2- قتل العملية مباشرة
+    with process_manager.lock:
+        if task_id in process_manager.processes:
+            proc_data = process_manager.processes[task_id]
+            process = proc_data.get('process')
+            if process:
+                # محاولة 1: terminate
+                try:
+                    process.terminate()
+                    time.sleep(0.5)
+                except:
+                    pass
+                
+                # محاولة 2: kill
+                if process.poll() is None:
+                    try:
+                        process.kill()
+                        time.sleep(0.3)
+                    except:
+                        pass
+                
+                # محاولة 3: SIGKILL مباشر
+                if process.poll() is None:
+                    try:
+                        os.kill(process.pid, signal.SIGKILL)
+                    except:
+                        pass
+                
+                proc_data['process'] = None
+            
+            proc_data['running'] = False
+            proc_data['completed'] = True
+            proc_data['success'] = False
+    
+    # 3- قتل أي عمليات متعلقة بالـ task_id
+    try:
+        import psutil
+        current_pid = os.getpid()
+        for proc in psutil.process_iter(['pid', 'cmdline', 'ppid']):
+            try:
+                pid = proc.info['pid']
+                ppid = proc.info.get('ppid')
+                cmdline = ' '.join(proc.info.get('cmdline', []))
+                
+                # تجاهل العملية الحالية
+                if pid == current_pid or ppid == current_pid:
+                    continue
+                
+                if task_id in cmdline:
+                    os.kill(pid, signal.SIGKILL)
+            except:
+                pass
+    except:
+        pass
+    
+    # 4- تحديث قاعدة البيانات
+    try:
+        if current_user.active_task_id == task_id:
+            current_user.active_task_id = None
+            db.session.commit()
+    except:
+        pass
+    
+    return jsonify({'message': '✅ تم إيقاف البوت بالقوة', 'stopped': True})
+
+@app.route('/stop-all', methods=['POST'])
+@login_required
+def stop_all():
+    """إيقاف جميع بوتات المستخدم"""
+    stopped = process_manager.stop_all_user_tasks(current_user.id)
+    
+    if current_user.active_task_id:
         current_user.active_task_id = None
         db.session.commit()
     
-    return jsonify({'message': 'تم الإيقاف'})
+    return jsonify({
+        'message': f'✅ تم إيقاف {stopped} بوت',
+        'stopped': stopped
+    })
 
 @app.route('/status/<task_id>')
 @login_required
@@ -734,27 +803,58 @@ def output_stream(task_id):
                 break
             
             outputs = status['output_list']
-            errors = status['error_list']
             
             while last < len(outputs):
                 yield f"data: {json.dumps({'type': 'output', 'text': outputs[last], 'running': status['running'], 'completed': status['completed']})}\n\n"
                 last += 1
             
-            for err in errors:
-                yield f"data: {json.dumps({'type': 'error', 'text': err})}\n\n"
-            
             if status['completed']:
                 yield f"data: {json.dumps({'type': 'complete', 'success': status['success'], 'running': False, 'completed': True})}\n\n"
                 break
             
-            time.sleep(0.5)
+            time.sleep(0.3)
     
     return Response(generate(), mimetype='text/event-stream')
+
+@app.route('/cleanup/<task_id>', methods=['POST'])
+@login_required
+def cleanup(task_id):
+    process_manager.force_kill_process(task_id)
+    
+    task_dir = os.path.join(current_user.get_folder_path(), f'{task_id}_*')
+    for f in Path(current_user.get_folder_path()).glob(f'{task_id}_*'):
+        try:
+            if f.is_file():
+                f.unlink()
+        except:
+            pass
+    
+    venv_path = os.path.join(current_user.get_folder_path(), f'venv_{task_id}')
+    if os.path.exists(venv_path):
+        try:
+            shutil.rmtree(venv_path, ignore_errors=True)
+        except:
+            pass
+    
+    with process_manager.lock:
+        process_manager.processes.pop(task_id, None)
+        process_manager.outputs.pop(task_id, None)
+    
+    return jsonify({'message': 'تم التنظيف'})
+
+@app.route('/health')
+def health():
+    return jsonify({
+        'status': 'healthy',
+        'active_tasks': len([p for p in process_manager.processes.values() if p['running']]),
+        'uptime': time.time()
+    })
 
 # ==================== إنشاء قاعدة البيانات ====================
 with app.app_context():
     db.create_all()
 
+# ==================== تشغيل ====================
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
