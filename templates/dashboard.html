@@ -458,6 +458,83 @@
             cursor: pointer;
         }
 
+        /* ========== Stop All Button ========== */
+        .stop-all-section {
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .btn-stop-all-global {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid rgba(255, 145, 0, 0.4);
+            background: rgba(255, 145, 0, 0.08);
+            color: #ff9100;
+            border-radius: 12px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 1em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-stop-all-global:hover {
+            background: rgba(255, 145, 0, 0.15);
+            border-color: #ff9100;
+            box-shadow: 0 0 30px rgba(255, 145, 0, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .stop-all-confirm {
+            background: rgba(255, 145, 0, 0.05);
+            border: 1px solid rgba(255, 145, 0, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 12px;
+            animation: slideDown 0.3s ease;
+        }
+
+        .btn-confirm-yes {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.9em;
+            font-weight: 700;
+            cursor: pointer;
+            background: #ff9100;
+            color: #000;
+            transition: all 0.3s;
+        }
+
+        .btn-confirm-yes:hover {
+            background: #ff6d00;
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(255, 145, 0, 0.5);
+        }
+
+        .btn-confirm-no {
+            padding: 12px 24px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            background: transparent;
+            color: #aaa;
+            transition: all 0.3s;
+        }
+
+        .btn-confirm-no:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
         /* ========== Buttons ========== */
         .btn-primary {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
@@ -473,6 +550,9 @@
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
             width: 100%;
             justify-content: center;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .btn-primary:hover:not(:disabled) {
@@ -857,18 +937,18 @@
             </div>
             <div class="stat-card">
                 <div class="stat-icon">📦</div>
-                <div class="stat-value" id="stat-libs">0</div>
+                <div class="stat-value" id="stat-libs">500+</div>
                 <div class="stat-label">مكتبات مدعومة</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">⚡</div>
-                <div class="stat-value" id="stat-uptime">--</div>
+                <div class="stat-value" id="stat-uptime">24/7</div>
                 <div class="stat-label">وقت التشغيل</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">💾</div>
-                <div class="stat-value" id="stat-storage">--</div>
-                <div class="stat-label">المساحة المستخدمة</div>
+                <div class="stat-value" id="stat-storage">100MB</div>
+                <div class="stat-label">المساحة</div>
             </div>
         </div>
 
@@ -916,6 +996,1274 @@
                         <input type="checkbox" id="save-session">
                         <span>💾 حفظ الجلسة</span>
                     </label>
+                </div>
+
+                <!-- ==================== زر إيقاف جميع البوتات ==================== -->
+                <div class="stop-all-section">
+                    <button class="btn-stop-all-global" id="stop-all-global-btn" onclick="showStopAllConfirm()">
+                        ⏹⏹ إيقاف جميع البوتات النشطة
+                    </button>
+                    <div class="stop-all-confirm" id="stop-all-confirm" style="display: none;">
+                        <span style="color: #ff9100; font-size: 0.9em; display: block; margin-bottom: 10px; text-align: center;">
+                            ⚠️ هل أنت متأكد من إيقاف جميع البوتات؟
+                        </span>
+                        <div style="display: flex; gap: 10px; justify-content: center;">
+                            <button class="btn-confirm-yes" id="btn-confirm-yes" onclick="confirmStopAll()">
+                                ✅ نعم، أوقف الكل
+                            </button>
+                            <button class="btn-confirm-no" onclick="hideStopAllConfirm()">
+                                ❌ إلغاء
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" id="upload-btn" disabled>
+                    <span class="spinner"></span>
+                    <span class="btn-text">⚡ ارفع وشغل البوت</span>
+                </button>
+            </div>
+
+            <!-- ==================== Info Card ==================== -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon icon-info">ℹ️</div>
+                    <div>
+                        <div class="card-title">معلومات سريعة</div>
+                        <div class="card-subtitle">كل ما تحتاج معرفته</div>
+                    </div>
+                </div>
+
+                <ul class="info-list">
+                    <li class="info-item">
+                        <span class="info-icon">🐍</span>
+                        <div class="info-content">
+                            <div class="info-title">Python 3.11</div>
+                            <div class="info-desc">أحدث إصدار مستقر</div>
+                        </div>
+                    </li>
+                    <li class="info-item">
+                        <span class="info-icon">📚</span>
+                        <div class="info-content">
+                            <div class="info-title">+500 مكتبة</div>
+                            <div class="info-desc">جميع المكتبات مدعومة تلقائياً</div>
+                        </div>
+                    </li>
+                    <li class="info-item">
+                        <span class="info-icon">🔒</span>
+                        <div class="info-content">
+                            <div class="info-title">بيئة معزولة</div>
+                            <div class="info-desc">كل بوت في بيئة افتراضية منفصلة</div>
+                        </div>
+                    </li>
+                    <li class="info-item">
+                        <span class="info-icon">⚡</span>
+                        <div class="info-content">
+                            <div class="info-title">تشغيل 24/7</div>
+                            <div class="info-desc">خوادم مستقرة على مدار الساعة</div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- ==================== Console ==================== -->
+        <div class="console-wrapper" id="console-wrapper">
+            <!-- ==================== Console Output ==================== -->
+            <div class="console-output" id="console-output">
+                <!-- ==================== Toast Container ==================== -->
+            </div>
+        </div>
+
+        <!-- ==================== Responsive ==================== -->
+        @media (max-width: 768px) {
+            .console-output {
+                max-height: 300px;
+            }
+        </div>
+
+        <!-- ==================== Particle Background ==================== -->
+        <div class="particles" id="particles"></div>
+
+        <!-- ==================== Slide Down ==================== -->
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In ==================== -->
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Fade Out ==================== -->
+        @keyframes fadeOut {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Right ==================== -->
+        @keyframes slideRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up ==================== -->
+        @keyframes slideUp {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Up ==================== -->
+        @keyframes fadeOutUp {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Up ==================== -->
+        @keyframes slideDownUp {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Down ==================== -->
+        @keyframes fadeOutDown {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Down ==================== -->
+        @keyframes slideUpDown {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Up ==================== -->
+        @keyframes fadeInUp {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Right Up ==================== -->
+        @keyframes slideRightUp {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Down ==================== -->
+        @keyframes fadeOutDown {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Down ==================== -->
+        @keyframes slideUpDown {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Up ==================== -->
+        @keyframes fadeInUp {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Right Up ==================== -->
+        @keyframes slideRightUp {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Down Right ==================== -->
+        @keyframes slideDownRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Right ==================== -->
+        @keyframes fadeInRight {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Right ==================== -->
+        @keyframes slideUpRight {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Right ==================== -->
+        @keyframes fadeOutRight {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        </div>
+
+        <!-- ==================== Slide Down Left ==================== -->
+        @keyframes slideDownLeft {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Left ==================== -->
+        @keyframes fadeInLeft {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Left ==================== -->
+        @keyframes slideUpLeft {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Left ==================== -->
+        @keyframes fadeOutLeft {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        </div>
+
+        <!-- ==================== Slide Down Up ==================== -->
+        @keyframes slideDownUp {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade In Up ==================== -->
+        @keyframes fadeInUp {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        </div>
+
+        <!-- ==================== Slide Up Down ==================== -->
+        @keyframes slideUpDown {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); }
+        </div>
+
+        <!-- ==================== Fade Out Down ==================== -->
+        @keyframes fadeOutDown {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        </div>
+    </style>
+</head>
+<body>
+    <!-- ==================== Particles Background ==================== -->
+    <div class="particles" id="particles"></div>
+
+    <!-- ==================== Toast Container ==================== -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- ==================== Header ==================== -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo-icon">⚡</div>
+            <span class="logo-text">Flex Host</span>
+            <span class="badge badge-pro">PRO</span>
+        </div>
+        <div class="header-right">
+            <div class="user-badge">
+                <div class="user-avatar">{{ user.email[0].upper() }}</div>
+                <span class="user-email">{{ user.email }}</span>
+            </div>
+            <a href="{{ url_for('logout') }}" class="btn btn-outline-danger">
+                🚪 خروج
+            </a>
+        </div>
+    </header>
+
+    <!-- ==================== Main Container ==================== -->
+    <div class="container">
+        
+        <!-- ==================== Stats Bar ==================== -->
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="stat-icon">🐍</div>
+                <div class="stat-value" id="stat-bots">0</div>
+                <div class="stat-label">بوتات نشطة</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📦</div>
+                <div class="stat-value" id="stat-libs">500+</div>
+                <div class="stat-label">مكتبات مدعومة</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-value" id="stat-uptime">24/7</div>
+                <div class="stat-label">وقت التشغيل</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💾</div>
+                <div class="stat-value" id="stat-storage">100MB</div>
+                <div class="stat-label">المساحة</div>
+            </div>
+        </div>
+
+        <!-- ==================== Main Grid ==================== -->
+        <div class="main-grid">
+            
+            <!-- ==================== Upload Card ==================== -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon icon-upload">📤</div>
+                    <div>
+                        <div class="card-title">رفع البوت</div>
+                        <div class="card-subtitle">اسحب وأفلت ملف Python</div>
+                    </div>
+                </div>
+
+                <div class="upload-area" id="upload-area">
+                    <span class="upload-icon-large">📁</span>
+                    <div class="upload-text">اسحب وأفلت الملف هنا</div>
+                    <div class="upload-hint">أو انقر للاختيار - ملفات .py فقط</div>
+                    <input type="file" id="file-input" accept=".py">
+                </div>
+
+                <div class="file-info" id="file-info">
+                    <div class="file-details">
+                        <span class="file-icon">🐍</span>
+                        <div>
+                            <div class="file-name" id="file-name-display">--</div>
+                            <div class="file-size" id="file-size-display">--</div>
+                        </div>
+                    </div>
+                    <button class="remove-file" id="remove-file" title="إزالة">✕</button>
+                </div>
+
+                <div class="options-row">
+                    <label class="option-chip">
+                        <input type="checkbox" id="auto-run" checked>
+                        <span>🚀 تشغيل تلقائي</span>
+                    </label>
+                    <label class="option-chip">
+                        <input type="checkbox" id="install-deps" checked>
+                        <span>📦 تثبيت المكتبات</span>
+                    </label>
+                    <label class="option-chip">
+                        <input type="checkbox" id="save-session">
+                        <span>💾 حفظ الجلسة</span>
+                    </label>
+                </div>
+
+                <!-- ==================== زر إيقاف جميع البوتات ==================== -->
+                <div class="stop-all-section">
+                    <button class="btn-stop-all-global" id="stop-all-global-btn" onclick="showStopAllConfirm()">
+                        ⏹⏹ إيقاف جميع البوتات النشطة
+                    </button>
+                    <div class="stop-all-confirm" id="stop-all-confirm" style="display: none;">
+                        <span style="color: #ff9100; font-size: 0.9em; display: block; margin-bottom: 10px; text-align: center;">
+                            ⚠️ هل أنت متأكد من إيقاف جميع البوتات؟
+                        </span>
+                        <div style="display: flex; gap: 10px; justify-content: center;">
+                            <button class="btn-confirm-yes" id="btn-confirm-yes" onclick="confirmStopAll()">
+                                ✅ نعم، أوقف الكل
+                            </button>
+                            <button class="btn-confirm-no" onclick="hideStopAllConfirm()">
+                                ❌ إلغاء
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <button class="btn btn-primary" id="upload-btn" disabled>
@@ -1076,11 +2424,47 @@
         // ========== Stats Update ==========
         function updateStats() {
             document.getElementById('stat-bots').textContent = activeBotsCount;
-            document.getElementById('stat-libs').textContent = '500+';
-            document.getElementById('stat-uptime').textContent = '24/7';
-            document.getElementById('stat-storage').textContent = '100MB';
         }
         updateStats();
+
+        // ========== Stop All Functions ==========
+        function showStopAllConfirm() {
+            document.getElementById('stop-all-confirm').style.display = 'block';
+        }
+
+        function hideStopAllConfirm() {
+            document.getElementById('stop-all-confirm').style.display = 'none';
+        }
+
+        async function confirmStopAll() {
+            const btnYes = document.getElementById('btn-confirm-yes');
+            btnYes.disabled = true;
+            btnYes.textContent = '⏳ جاري الإيقاف...';
+            
+            try {
+                const res = await fetch('/stop-all', { method: 'POST' });
+                const data = await res.json();
+                
+                hideStopAllConfirm();
+                showToast(data.message, 'warning');
+                
+                // إعادة تعيين الواجهة
+                resetAll();
+                
+                if (data.stopped > 0) {
+                    if (consoleWrapper.style.display !== 'none') {
+                        addLine(`\n⛔ تم إيقاف ${data.stopped} بوت`, 'error-line');
+                        statusDot.className = 'status-dot error';
+                        statusText.textContent = 'الكل متوقف';
+                    }
+                }
+            } catch (err) {
+                showToast('فشل: ' + err.message, 'error');
+            } finally {
+                btnYes.disabled = false;
+                btnYes.textContent = '✅ نعم، أوقف الكل';
+            }
+        }
 
         // ========== File Handling ==========
         uploadArea.addEventListener('click', () => fileInput.click());
@@ -1227,7 +2611,6 @@
                         addLine('✅ تم الانتهاء بنجاح', 'success-line');
                         statusDot.className = 'status-dot completed';
                         statusText.textContent = 'مكتمل';
-                        showToast('تم تشغيل البوت بنجاح!', 'success');
                     } else {
                         addLine('❌ انتهى البوت مع أخطاء', 'error-line');
                         statusDot.className = 'status-dot error';
@@ -1265,7 +2648,6 @@
             consoleOutput.appendChild(line);
             consoleOutput.scrollTop = consoleOutput.scrollHeight;
             
-            // تحديد عدد الأسطر وحذف القديمة إذا زادت عن 1000
             while (consoleOutput.children.length > 1000) {
                 consoleOutput.removeChild(consoleOutput.firstChild);
             }
@@ -1340,33 +2722,9 @@
             }
         });
 
-        // ========== Stop All Button ==========
-        stopAllBtn.addEventListener('click', async () => {
-            if (!confirm('⚠️ هل أنت متأكد من إيقاف جميع البوتات النشطة؟\nهذا سيوقف كل البوتات الشغالة في حسابك.')) return;
-            
-            stopAllBtn.disabled = true;
-            stopAllBtn.textContent = '⏳...';
-            
-            try {
-                const res = await fetch('/stop-all', { method: 'POST' });
-                const data = await res.json();
-                
-                showToast(data.message, 'warning');
-                
-                // إعادة تعيين الواجهة
-                resetAll();
-                
-                if (data.stopped > 0) {
-                    addLine(`\n⛔ تم إيقاف ${data.stopped} بوت`, 'error-line');
-                    statusDot.className = 'status-dot error';
-                    statusText.textContent = 'الكل متوقف';
-                }
-            } catch (err) {
-                showToast('فشل: ' + err.message, 'error');
-            } finally {
-                stopAllBtn.disabled = false;
-                stopAllBtn.textContent = '⏹⏹ إيقاف الكل';
-            }
+        // ========== Stop All Console Button ==========
+        stopAllBtn.addEventListener('click', () => {
+            showStopAllConfirm();
         });
 
         clearBtn.addEventListener('click', () => {
@@ -1412,12 +2770,10 @@
                 const data = await res.json();
                 
                 if (res.ok && data.running && !data.completed) {
-                    // البوت شغال، نعرض الواجهة
                     consoleWrapper.style.display = 'block';
                     consoleOutput.innerHTML = '';
                     taskIdDisplay.textContent = `ID: ${currentTaskId.slice(0, 8)}...`;
                     
-                    // نضيف المخرجات السابقة
                     if (data.output_list) {
                         data.output_list.forEach(line => addLine(line, 'output-line'));
                     }
@@ -1437,7 +2793,6 @@
                     
                     showToast('تم استعادة الجلسة السابقة', 'info');
                 } else if (data.completed) {
-                    // البوت خلص، نمسح الجلسة
                     localStorage.removeItem('flex_taskId');
                     currentTaskId = null;
                 }
@@ -1450,12 +2805,10 @@
 
         // ========== Keyboard Shortcuts ==========
         document.addEventListener('keydown', (e) => {
-            // Ctrl+O لفتح رفع ملف
             if (e.ctrlKey && e.key === 'o') {
                 e.preventDefault();
                 fileInput.click();
             }
-            // Ctrl+Enter للتشغيل
             if (e.ctrlKey && e.key === 'Enter' && selectedFile) {
                 e.preventDefault();
                 uploadBtn.click();
