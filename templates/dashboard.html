@@ -8,11 +8,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap');
         
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
             --primary: #667eea;
@@ -23,13 +19,17 @@
             --info: #00b0ff;
             --dark: #0a0a1a;
             --darker: #050510;
-            --card: rgba(255, 255, 255, 0.03);
-            --border: rgba(255, 255, 255, 0.06);
+            --card: rgba(255,255,255,0.03);
+            --card-hover: rgba(255,255,255,0.06);
+            --border: rgba(255,255,255,0.06);
+            --border-hover: rgba(255,255,255,0.12);
             --text: #e0e0e0;
             --text-secondary: #9e9e9e;
-            --glow: 0 0 20px rgba(102, 126, 234, 0.3);
             --radius: 16px;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --radius-sm: 10px;
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --shadow: 0 4px 20px rgba(0,0,0,0.3);
+            --shadow-lg: 0 10px 40px rgba(0,0,0,0.5);
         }
 
         body {
@@ -38,164 +38,121 @@
             min-height: 100vh;
             color: var(--text);
             background-image: 
-                radial-gradient(ellipse at 20% 50%, rgba(102, 126, 234, 0.08) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 20%, rgba(118, 75, 162, 0.08) 0%, transparent 50%),
-                radial-gradient(ellipse at 50% 80%, rgba(0, 200, 83, 0.05) 0%, transparent 50%);
+                radial-gradient(ellipse at 20% 50%, rgba(102,126,234,0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(118,75,162,0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, rgba(0,200,83,0.04) 0%, transparent 50%);
             background-attachment: fixed;
         }
 
+        /* ========== Scrollbar ========== */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+
+        /* ========== Header ========== */
         .header {
-            background: rgba(10, 10, 26, 0.8);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            background: rgba(10,10,26,0.85);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
             border-bottom: 1px solid var(--border);
-            padding: 16px 32px;
+            padding: 12px 28px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: sticky;
             top: 0;
             z-index: 1000;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.3);
         }
 
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
+        .header-left { display: flex; align-items: center; gap: 10px; }
+        
         .logo-icon {
-            width: 42px;
-            height: 42px;
+            width: 40px; height: 40px;
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5em;
-            box-shadow: var(--glow);
-            animation: logoPulse 3s infinite;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4em;
+            box-shadow: 0 0 20px rgba(102,126,234,0.3);
+            animation: logoGlow 3s ease-in-out infinite;
         }
 
-        @keyframes logoPulse {
-            0%, 100% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.3); }
-            50% { box-shadow: 0 0 35px rgba(102, 126, 234, 0.6); }
+        @keyframes logoGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(102,126,234,0.3); }
+            50% { box-shadow: 0 0 35px rgba(102,126,234,0.6); }
         }
 
         .logo-text {
-            font-size: 1.6em;
-            font-weight: 900;
+            font-size: 1.5em; font-weight: 900;
             background: linear-gradient(135deg, #667eea, #e0e0e0, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             background-clip: text;
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .user-badge {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: var(--card);
-            padding: 8px 16px;
-            border-radius: 30px;
-            border: 1px solid var(--border);
-        }
-
-        .user-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.9em;
-            font-weight: 700;
-        }
-
-        .user-email {
-            color: var(--text);
-            font-size: 0.9em;
-            max-width: 180px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.75em;
-            font-weight: 600;
         }
 
         .badge-pro {
             background: linear-gradient(135deg, #ffd700, #ff8c00);
-            color: #000;
+            color: #000; padding: 3px 10px; border-radius: 15px;
+            font-size: 0.7em; font-weight: 800; letter-spacing: 0.5px;
             animation: shimmer 2s infinite;
         }
 
         @keyframes shimmer {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
+            50% { opacity: 0.75; }
         }
 
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 10px;
-            font-family: 'Cairo', sans-serif;
-            font-size: 0.9em;
-            font-weight: 600;
-            cursor: pointer;
+        .header-right { display: flex; align-items: center; gap: 14px; }
+        
+        .user-badge {
+            display: flex; align-items: center; gap: 10px;
+            background: var(--card); padding: 7px 16px;
+            border-radius: 25px; border: 1px solid var(--border);
             transition: var(--transition);
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            white-space: nowrap;
+        }
+        .user-badge:hover { border-color: var(--border-hover); background: var(--card-hover); }
+
+        .user-avatar {
+            width: 34px; height: 34px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85em; font-weight: 700; color: #fff;
         }
 
-        .btn-outline-danger {
-            background: transparent;
-            border: 1px solid rgba(255, 23, 68, 0.5);
-            color: var(--danger);
+        .user-email { 
+            font-size: 0.88em; max-width: 170px; 
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap; 
         }
 
-        .btn-outline-danger:hover {
-            background: rgba(255, 23, 68, 0.1);
+        .btn-logout {
+            background: transparent; border: 1px solid rgba(255,23,68,0.4);
+            color: var(--danger); padding: 8px 16px; border-radius: 8px;
+            cursor: pointer; text-decoration: none; font-size: 0.85em; font-weight: 600;
+            transition: var(--transition); display: flex; align-items: center; gap: 6px;
+        }
+        .btn-logout:hover { 
+            background: rgba(255,23,68,0.1); 
             border-color: var(--danger);
-            box-shadow: 0 0 20px rgba(255, 23, 68, 0.2);
-            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(255,23,68,0.15);
+            transform: translateY(-1px);
         }
 
-        .container {
-            max-width: 1300px;
-            margin: 0 auto;
-            padding: 30px 20px;
-        }
+        /* ========== Container ========== */
+        .container { max-width: 1300px; margin: 0 auto; padding: 20px 20px 30px; }
 
+        /* ========== Stats Bar ========== */
         .stats-bar {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 20px;
         }
 
         .stat-card {
             background: var(--card);
-            backdrop-filter: blur(10px);
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            padding: 20px;
+            padding: 18px 20px;
             transition: var(--transition);
             position: relative;
             overflow: hidden;
@@ -204,138 +161,317 @@
         .stat-card::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
+            top: 0; left: 0; right: 0;
             height: 3px;
             background: linear-gradient(90deg, var(--primary), var(--secondary));
         }
 
         .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-            border-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+            border-color: var(--border-hover);
         }
 
-        .stat-card .stat-icon {
-            font-size: 2em;
-            margin-bottom: 10px;
-        }
-
-        .stat-card .stat-value {
-            font-size: 2em;
-            font-weight: 900;
+        .stat-card .stat-icon { font-size: 1.8em; margin-bottom: 8px; }
+        .stat-card .stat-value { 
+            font-size: 1.8em; font-weight: 900;
             background: linear-gradient(135deg, #fff, #aaa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .stat-card .stat-label { color: var(--text-secondary); font-size: 0.82em; margin-top: 4px; }
+
+        /* ========== Toolbar ========== */
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 18px;
+            gap: 14px;
+            position: relative;
         }
 
-        .stat-card .stat-label {
-            color: var(--text-secondary);
-            font-size: 0.85em;
-            margin-top: 4px;
+        .toolbar-left { 
+            display: flex; 
+            gap: 10px; 
+            flex-wrap: wrap;
+            flex: 1;
         }
 
-        .main-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-            margin-bottom: 30px;
-        }
+        .toolbar-right { position: relative; flex-shrink: 0; }
 
-        @media (max-width: 1024px) {
-            .main-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .card {
-            background: var(--card);
-            backdrop-filter: blur(10px);
+        .btn-tool {
+            padding: 10px 18px;
             border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 28px;
+            background: var(--card);
+            color: var(--text);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.85em;
+            font-weight: 600;
             transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            white-space: nowrap;
+            user-select: none;
         }
 
-        .card:hover {
-            border-color: rgba(255, 255, 255, 0.1);
+        .btn-tool:hover { 
+            border-color: var(--border-hover); 
+            background: var(--card-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
         }
 
-        .card-header {
+        .btn-tool:active { transform: scale(0.97); }
+
+        .btn-tool.upload { 
+            background: rgba(102,126,234,0.12); 
+            border-color: rgba(102,126,234,0.35); 
+            color: #aab4ff; 
+        }
+        .btn-tool.upload:hover { 
+            background: rgba(102,126,234,0.2); 
+            box-shadow: 0 0 25px rgba(102,126,234,0.2);
+        }
+
+        .btn-tool.run-all { 
+            background: rgba(0,200,83,0.08); 
+            border-color: rgba(0,200,83,0.25); 
+            color: var(--success); 
+        }
+        .btn-tool.run-all:hover { 
+            background: rgba(0,200,83,0.15); 
+            box-shadow: 0 0 25px rgba(0,200,83,0.2);
+        }
+
+        .btn-tool.stop-all { 
+            background: rgba(255,145,0,0.08); 
+            border-color: rgba(255,145,0,0.25); 
+            color: var(--warning); 
+        }
+        .btn-tool.stop-all:hover { 
+            background: rgba(255,145,0,0.15); 
+            box-shadow: 0 0 25px rgba(255,145,0,0.2);
+        }
+
+        .btn-tool.delete-all { 
+            background: rgba(255,23,68,0.08); 
+            border-color: rgba(255,23,68,0.25); 
+            color: var(--danger); 
+        }
+        .btn-tool.delete-all:hover { 
+            background: rgba(255,23,68,0.15); 
+            box-shadow: 0 0 25px rgba(255,23,68,0.2);
+        }
+
+        /* ========== Menu Button ========== */
+        .btn-menu {
+            padding: 10px 15px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            color: var(--text);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 1.3em;
+            transition: var(--transition);
+            line-height: 1;
+        }
+        .btn-menu:hover { 
+            border-color: var(--border-hover); 
+            background: var(--card-hover);
+        }
+        .btn-menu.active { 
+            background: rgba(102,126,234,0.15); 
+            border-color: var(--primary); 
+            color: #aab4ff;
+        }
+
+        /* ========== Dropdown Menu ========== */
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: #15152a;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 8px;
+            min-width: 170px;
+            display: none;
+            z-index: 999;
+            box-shadow: var(--shadow-lg);
+            backdrop-filter: blur(20px);
+        }
+        .dropdown-menu.show { 
+            display: block; 
+            animation: dropdownIn 0.2s ease;
+        }
+
+        @keyframes dropdownIn { 
+            from { opacity: 0; transform: translateY(-8px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        .dropdown-item {
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-bottom: 24px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .card-header .icon {
-            width: 40px;
-            height: 40px;
+            padding: 11px 16px;
             border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.3em;
-        }
-
-        .icon-upload { background: rgba(102, 126, 234, 0.2); }
-        .icon-console { background: rgba(0, 200, 83, 0.2); }
-        .icon-info { background: rgba(255, 145, 0, 0.2); }
-
-        .card-title {
-            font-size: 1.2em;
-            font-weight: 700;
-        }
-
-        .card-subtitle {
-            color: var(--text-secondary);
-            font-size: 0.85em;
-        }
-
-        .upload-area {
-            border: 2px dashed rgba(255, 255, 255, 0.15);
-            border-radius: var(--radius);
-            padding: 50px 30px;
-            text-align: center;
             cursor: pointer;
             transition: var(--transition);
-            background: rgba(255, 255, 255, 0.02);
+            font-size: 0.9em;
+            font-weight: 600;
+            color: var(--text);
+            text-decoration: none;
+            user-select: none;
+        }
+        .dropdown-item:hover { background: rgba(102,126,234,0.12); }
+        .dropdown-item.active { 
+            background: rgba(102,126,234,0.18); 
+            color: #aab4ff; 
+        }
+        .dropdown-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 6px 0;
+        }
+
+        /* ========== Content Area ========== */
+        .content-area {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 6px;
+            min-height: 450px;
+            max-height: 550px;
+            overflow-y: auto;
+            transition: var(--transition);
             position: relative;
-            overflow: hidden;
         }
 
-        .upload-area::after {
-            content: '';
+        /* ========== Files View ========== */
+        .files-view { display: none; }
+        .files-view.active { display: block; }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            margin: 3px 0;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            transition: var(--transition);
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            background: transparent;
+        }
+
+        .file-item:hover { 
+            background: var(--card-hover); 
+            border-color: var(--border); 
+        }
+
+        .file-item:active { 
+            background: rgba(102,126,234,0.06); 
+            transform: scale(0.99);
+        }
+
+        .file-item-left { 
+            display: flex; 
+            align-items: center; 
+            gap: 14px; 
+            flex: 1;
+        }
+
+        .file-icon { 
+            font-size: 1.6em; 
+            transition: var(--transition);
+        }
+
+        .file-item:hover .file-icon { transform: scale(1.1); }
+
+        .file-info { display: flex; flex-direction: column; gap: 2px; }
+
+        .file-name { font-weight: 600; font-size: 0.95em; }
+
+        .file-meta {
+            font-size: 0.75em;
+            color: var(--text-secondary);
+        }
+
+        .file-status {
+            font-size: 0.75em;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .file-status.running { 
+            background: rgba(0,200,83,0.12); 
+            color: var(--success); 
+            animation: statusPulse 2s infinite;
+        }
+
+        .file-status.stopped { 
+            background: rgba(255,255,255,0.04); 
+            color: var(--text-secondary); 
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .delete-btn {
+            display: none;
             position: absolute;
-            inset: 0;
-            background: radial-gradient(circle at center, rgba(102, 126, 234, 0.1), transparent);
-            opacity: 0;
-            transition: opacity 0.3s;
+            left: 14px;
+            background: rgba(255,23,68,0.2);
+            color: var(--danger);
+            border: none;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: var(--transition);
+            z-index: 10;
         }
 
-        .upload-area:hover {
-            border-color: var(--primary);
-            box-shadow: var(--glow);
+        .file-item.show-delete .delete-btn { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            animation: popIn 0.2s ease;
         }
 
-        .upload-area:hover::after {
-            opacity: 1;
+        @keyframes popIn {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
         }
 
-        .upload-area.dragover {
-            border-color: var(--success);
-            background: rgba(0, 200, 83, 0.05);
-            box-shadow: 0 0 40px rgba(0, 200, 83, 0.2);
-            transform: scale(1.02);
+        .delete-btn:hover { 
+            background: rgba(255,23,68,0.4); 
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(255,23,68,0.3);
         }
 
-        .upload-icon-large {
-            font-size: 5em;
-            margin-bottom: 15px;
-            display: block;
+        .empty-state {
+            text-align: center;
+            padding: 70px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state .empty-icon { 
+            font-size: 5em; 
+            margin-bottom: 16px; 
+            opacity: 0.6;
             animation: float 3s ease-in-out infinite;
         }
 
@@ -344,1099 +480,735 @@
             50% { transform: translateY(-15px); }
         }
 
-        .upload-text {
-            font-size: 1.3em;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
+        .empty-state .empty-text { font-size: 1.2em; font-weight: 600; margin-bottom: 6px; }
+        .empty-state .empty-hint { font-size: 0.88em; opacity: 0.7; }
 
-        .upload-hint {
-            color: var(--text-secondary);
-            font-size: 0.9em;
-        }
-
-        #file-input {
-            display: none;
-        }
-
-        .file-info {
-            display: none;
-            background: rgba(102, 126, 234, 0.08);
-            border-radius: 12px;
-            padding: 16px 20px;
-            margin: 16px 0;
-            border: 1px solid rgba(102, 126, 234, 0.2);
-            animation: slideDown 0.3s ease;
-        }
-
-        .file-info.show {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .file-info .file-details {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .file-info .file-icon {
-            font-size: 2em;
-        }
-
-        .file-info .file-name {
-            font-weight: 600;
-        }
-
-        .file-info .file-size {
-            color: var(--text-secondary);
-            font-size: 0.85em;
-        }
-
-        .remove-file {
-            background: rgba(255, 23, 68, 0.15);
-            border: none;
-            color: var(--danger);
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 1.1em;
-            transition: var(--transition);
-        }
-
-        .remove-file:hover {
-            background: rgba(255, 23, 68, 0.3);
-            transform: scale(1.1);
-        }
-
-        .options-row {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-
-        .option-chip {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: var(--card);
-            padding: 12px 18px;
-            border-radius: 30px;
-            border: 1px solid var(--border);
-            cursor: pointer;
-            transition: var(--transition);
-            font-size: 0.9em;
-            user-select: none;
-        }
-
-        .option-chip:hover {
-            border-color: var(--primary);
-            background: rgba(102, 126, 234, 0.05);
-        }
-
-        .option-chip input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            accent-color: var(--primary);
-            cursor: pointer;
-        }
-
-        .stop-all-section {
-            margin-bottom: 16px;
-            text-align: center;
-        }
-
-        .btn-stop-all-global {
-            width: 100%;
-            padding: 14px;
-            border: 2px solid rgba(255, 145, 0, 0.4);
-            background: rgba(255, 145, 0, 0.08);
-            color: #ff9100;
-            border-radius: 12px;
-            font-family: 'Cairo', sans-serif;
-            font-size: 1em;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-stop-all-global:hover {
-            background: rgba(255, 145, 0, 0.15);
-            border-color: #ff9100;
-            box-shadow: 0 0 30px rgba(255, 145, 0, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .stop-all-confirm {
-            background: rgba(255, 145, 0, 0.05);
-            border: 1px solid rgba(255, 145, 0, 0.3);
-            border-radius: 12px;
-            padding: 16px;
-            margin-top: 12px;
-            animation: slideDown 0.3s ease;
-        }
-
-        .btn-confirm-yes {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 10px;
-            font-family: 'Cairo', sans-serif;
-            font-size: 0.9em;
-            font-weight: 700;
-            cursor: pointer;
-            background: #ff9100;
-            color: #000;
-            transition: all 0.3s;
-        }
-
-        .btn-confirm-yes:hover {
-            background: #ff6d00;
-            transform: scale(1.05);
-            box-shadow: 0 0 25px rgba(255, 145, 0, 0.5);
-        }
-
-        .btn-confirm-no {
-            padding: 12px 24px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            font-family: 'Cairo', sans-serif;
-            font-size: 0.9em;
-            font-weight: 600;
-            cursor: pointer;
-            background: transparent;
-            color: #aaa;
-            transition: all 0.3s;
-        }
-
-        .btn-confirm-no:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(255, 255, 255, 0.4);
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: #fff;
-            padding: 14px 32px;
-            border: none;
-            border-radius: 12px;
-            font-family: 'Cairo', sans-serif;
-            font-size: 1.05em;
-            font-weight: 700;
-            cursor: pointer;
-            transition: var(--transition);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-            width: 100%;
-            justify-content: center;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-primary:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.5);
-        }
-
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            filter: grayscale(30%);
-        }
-
-        .btn-primary.loading {
-            pointer-events: none;
-        }
-
-        .btn-primary .spinner {
-            display: none;
-            width: 20px;
-            height: 20px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-top-color: #fff;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        .btn-primary.loading .spinner {
-            display: block;
-        }
-
-        .btn-primary.loading .btn-text {
-            display: none;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .console-wrapper {
-            display: none;
-            animation: fadeInUp 0.4s ease;
-        }
-
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .console {
-            background: #0d0d1a;
-            border-radius: var(--radius);
-            overflow: hidden;
-            border: 1px solid var(--border);
-        }
-
-        .console-header {
-            background: #13132b;
-            padding: 14px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border);
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        .console-header-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #666;
-            box-shadow: 0 0 8px currentColor;
-            transition: var(--transition);
-        }
-
-        .status-dot.idle { background: #666; }
-        .status-dot.running { background: var(--success); box-shadow: 0 0 15px var(--success); animation: dotPulse 1.5s infinite; }
-        .status-dot.error { background: var(--danger); box-shadow: 0 0 15px var(--danger); }
-        .status-dot.completed { background: var(--info); box-shadow: 0 0 15px var(--info); }
-
-        @keyframes dotPulse {
-            0%, 100% { box-shadow: 0 0 5px var(--success); }
-            50% { box-shadow: 0 0 25px var(--success), 0 0 40px rgba(0, 200, 83, 0.4); }
-        }
-
-        .status-text {
-            font-size: 0.85em;
-            color: var(--text-secondary);
-        }
-
-        .console-controls {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .ctrl-btn {
-            padding: 8px 14px;
-            border: none;
-            border-radius: 8px;
-            font-family: 'Cairo', sans-serif;
-            font-size: 0.82em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            white-space: nowrap;
-        }
-
-        .ctrl-btn.run { 
-            background: rgba(0, 200, 83, 0.2); 
-            color: var(--success); 
-            border: 1px solid rgba(0, 200, 83, 0.3);
-        }
-        .ctrl-btn.run:hover { background: rgba(0, 200, 83, 0.3); transform: translateY(-1px); }
-
-        .ctrl-btn.stop { 
-            background: rgba(255, 23, 68, 0.2); 
-            color: var(--danger); 
-            border: 1px solid rgba(255, 23, 68, 0.3);
-        }
-        .ctrl-btn.stop:hover { background: rgba(255, 23, 68, 0.3); transform: translateY(-1px); }
-
-        .ctrl-btn.stop-all { 
-            background: rgba(255, 145, 0, 0.2); 
-            color: var(--warning); 
-            border: 1px solid rgba(255, 145, 0, 0.3);
-            font-weight: 700;
-        }
-        .ctrl-btn.stop-all:hover { 
-            background: rgba(255, 145, 0, 0.3); 
-            transform: translateY(-1px);
-            box-shadow: 0 0 20px rgba(255, 145, 0, 0.3);
-        }
-
-        .ctrl-btn.clear { 
-            background: rgba(255, 255, 255, 0.05); 
-            color: var(--text-secondary); 
-            border: 1px solid var(--border);
-        }
-        .ctrl-btn.clear:hover { background: rgba(255, 255, 255, 0.1); }
+        /* ========== Console View ========== */
+        .console-view { display: none; }
+        .console-view.active { display: block; }
 
         .console-output {
-            padding: 20px;
-            max-height: 450px;
-            overflow-y: auto;
+            background: #0a0a15;
+            border-radius: 12px;
+            padding: 18px 20px;
             font-family: 'Cascadia Code', 'Fira Code', 'Courier New', monospace;
-            font-size: 0.85em;
+            font-size: 0.84em;
             line-height: 1.7;
             white-space: pre-wrap;
             word-break: break-all;
-            background: #0a0a15;
+            max-height: 480px;
+            overflow-y: auto;
+            color: #c0c0c0;
+            border: 1px solid rgba(255,255,255,0.04);
         }
 
-        .console-output::-webkit-scrollbar {
-            width: 6px;
+        .console-output .error-line { 
+            color: #ff6b6b; 
+            background: rgba(255,23,68,0.04); 
+            padding: 2px 6px; 
+            border-radius: 4px; 
+        }
+        .console-output .success-line { color: #69f0ae; }
+        .console-output .info-line { color: #40c4ff; }
+        .console-output .warning-line { color: #ffd740; }
+
+        .console-empty { 
+            text-align: center; 
+            padding: 70px 20px; 
+            color: var(--text-secondary); 
         }
 
-        .console-output::-webkit-scrollbar-track {
-            background: transparent;
-        }
+        .console-empty .console-icon { font-size: 3em; margin-bottom: 12px; opacity: 0.5; }
 
-        .console-output::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-        }
-
-        .console-output::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .output-line { color: #c0c0c0; animation: fadeIn 0.15s ease; }
-        .error-line { color: #ff6b6b; background: rgba(255, 23, 68, 0.05); padding: 2px 6px; border-radius: 4px; }
-        .success-line { color: #69f0ae; }
-        .info-line { color: #40c4ff; }
-        .warning-line { color: #ffd740; }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .info-list {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .info-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 16px;
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            transition: var(--transition);
-        }
-
-        .info-item:hover {
-            border-color: rgba(255, 255, 255, 0.1);
-        }
-
-        .info-item .info-icon {
-            font-size: 1.5em;
-            width: 40px;
-            text-align: center;
-        }
-
-        .info-item .info-content {
-            flex: 1;
-        }
-
-        .info-item .info-title {
-            font-weight: 600;
-            font-size: 0.9em;
-        }
-
-        .info-item .info-desc {
-            color: var(--text-secondary);
-            font-size: 0.8em;
-        }
-
-        .toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+        /* ========== Toast ========== */
+        .toast-container { 
+            position: fixed; top: 20px; right: 20px; 
+            z-index: 9999; display: flex; flex-direction: column; gap: 8px; 
         }
 
         .toast {
-            padding: 14px 20px;
+            padding: 13px 20px;
             border-radius: 12px;
             color: #fff;
             font-weight: 600;
-            font-size: 0.9em;
-            animation: slideInRight 0.3s ease, fadeOut 0.3s ease 3s forwards;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-            max-width: 400px;
+            font-size: 0.85em;
+            animation: toastIn 0.35s ease, toastOut 0.35s ease 2.8s forwards;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+            max-width: 380px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .toast-success { background: var(--success); }
-        .toast-error { background: var(--danger); }
-        .toast-info { background: var(--info); }
-        .toast-warning { background: var(--warning); }
+        .toast-success { background: linear-gradient(135deg, #00c853, #00e676); }
+        .toast-error { background: linear-gradient(135deg, #d50000, #ff1744); }
+        .toast-info { background: linear-gradient(135deg, #0091ea, #00b0ff); }
+        .toast-warning { background: linear-gradient(135deg, #ff6d00, #ff9100); }
 
-        @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+        @keyframes toastIn { 
+            from { transform: translateX(120%); opacity: 0; } 
+            to { transform: translateX(0); opacity: 1; } 
+        }
+        @keyframes toastOut { 
+            from { opacity: 1; } 
+            to { opacity: 0; transform: translateX(50px); } 
         }
 
-        @keyframes fadeOut {
-            from { opacity: 1; }
-            to { opacity: 0; }
-        }
+        #file-input { display: none; }
 
-        .particles {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        .particle {
-            position: absolute;
-            width: 2px;
-            height: 2px;
-            background: var(--primary);
-            border-radius: 50%;
-            animation: particleFloat 8s infinite;
-            opacity: 0;
-        }
-
-        @keyframes particleFloat {
-            0% { transform: translateY(100vh) scale(0); opacity: 0; }
-            10% { opacity: 0.8; }
-            90% { opacity: 0.8; }
-            100% { transform: translateY(-100vh) scale(1); opacity: 0; }
+        /* ========== Responsive ========== */
+        @media (max-width: 900px) {
+            .stats-bar { grid-template-columns: repeat(2, 1fr); }
         }
 
         @media (max-width: 768px) {
-            .header {
-                padding: 12px 16px;
-                flex-wrap: wrap;
-                gap: 10px;
-            }
+            .header { padding: 10px 14px; }
+            .user-email { max-width: 100px; font-size: 0.78em; }
+            .logo-text { font-size: 1.2em; }
             
-            .header-right {
-                gap: 10px;
-            }
+            .toolbar { flex-direction: column; }
+            .toolbar-left { gap: 6px; }
+            .toolbar-right { align-self: flex-end; }
             
-            .user-email {
-                max-width: 120px;
-            }
+            .btn-tool { padding: 8px 12px; font-size: 0.78em; gap: 5px; }
+            .btn-menu { padding: 8px 12px; font-size: 1.1em; }
             
-            .container {
-                padding: 16px;
-            }
-            
-            .upload-area {
-                padding: 30px 20px;
-            }
-            
-            .upload-icon-large {
-                font-size: 3em;
-            }
-            
-            .console-output {
-                max-height: 300px;
-                font-size: 0.75em;
-            }
-            
-            .stats-bar {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .console-controls {
-                width: 100%;
-                justify-content: center;
-            }
+            .content-area { max-height: 400px; min-height: 350px; }
+            .stats-bar { gap: 8px; }
+            .stat-card { padding: 12px 14px; }
+            .stat-card .stat-value { font-size: 1.3em; }
         }
     </style>
 </head>
 <body>
-    <div class="particles" id="particles"></div>
+    <!-- Toast Container -->
     <div class="toast-container" id="toast-container"></div>
 
+    <!-- Header -->
     <header class="header">
         <div class="header-left">
             <div class="logo-icon">⚡</div>
             <span class="logo-text">Flex Host</span>
-            <span class="badge badge-pro">PRO</span>
+            <span class="badge-pro">PRO</span>
         </div>
         <div class="header-right">
             <div class="user-badge">
                 <div class="user-avatar">{{ user.email[0].upper() }}</div>
                 <span class="user-email">{{ user.email }}</span>
             </div>
-            <a href="{{ url_for('logout') }}" class="btn btn-outline-danger">🚪 خروج</a>
+            <a href="{{ url_for('logout') }}" class="btn-logout">🚪 خروج</a>
         </div>
     </header>
 
+    <!-- Main Container -->
     <div class="container">
+        
+        <!-- Stats Bar -->
         <div class="stats-bar">
             <div class="stat-card">
-                <div class="stat-icon">🐍</div>
-                <div class="stat-value" id="stat-bots">0</div>
-                <div class="stat-label">بوتات نشطة</div>
+                <div class="stat-icon">📄</div>
+                <div class="stat-value" id="stat-total">0</div>
+                <div class="stat-label">إجمالي الملفات</div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">📦</div>
-                <div class="stat-value" id="stat-libs">500+</div>
-                <div class="stat-label">مكتبات مدعومة</div>
+                <div class="stat-icon">🟢</div>
+                <div class="stat-value" id="stat-running">0</div>
+                <div class="stat-label">بوتات شغالة</div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">⚡</div>
-                <div class="stat-value" id="stat-uptime">24/7</div>
-                <div class="stat-label">وقت التشغيل</div>
+                <div class="stat-icon">⏸️</div>
+                <div class="stat-value" id="stat-stopped">0</div>
+                <div class="stat-label">بوتات متوقفة</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">💾</div>
-                <div class="stat-value" id="stat-storage">100MB</div>
+                <div class="stat-value" id="stat-storage">--</div>
                 <div class="stat-label">المساحة</div>
             </div>
         </div>
 
-        <div class="main-grid">
-            <div class="card">
-                <div class="card-header">
-                    <div class="icon icon-upload">📤</div>
-                    <div>
-                        <div class="card-title">رفع البوت</div>
-                        <div class="card-subtitle">اسحب وأفلت ملف Python</div>
-                    </div>
-                </div>
-
-                <div class="upload-area" id="upload-area">
-                    <span class="upload-icon-large">📁</span>
-                    <div class="upload-text">اسحب وأفلت الملف هنا</div>
-                    <div class="upload-hint">أو انقر للاختيار - ملفات .py فقط</div>
-                    <input type="file" id="file-input" accept=".py">
-                </div>
-
-                <div class="file-info" id="file-info">
-                    <div class="file-details">
-                        <span class="file-icon">🐍</span>
-                        <div>
-                            <div class="file-name" id="file-name-display">--</div>
-                            <div class="file-size" id="file-size-display">--</div>
-                        </div>
-                    </div>
-                    <button class="remove-file" id="remove-file" title="إزالة">✕</button>
-                </div>
-
-                <div class="options-row">
-                    <label class="option-chip">
-                        <input type="checkbox" id="auto-run" checked>
-                        <span>🚀 تشغيل تلقائي</span>
-                    </label>
-                    <label class="option-chip">
-                        <input type="checkbox" id="install-deps" checked>
-                        <span>📦 تثبيت المكتبات</span>
-                    </label>
-                    <label class="option-chip">
-                        <input type="checkbox" id="save-session">
-                        <span>💾 حفظ الجلسة</span>
-                    </label>
-                </div>
-
-                <div class="stop-all-section">
-                    <button class="btn-stop-all-global" id="stop-all-global-btn" onclick="showStopAllConfirm()">
-                        ⏹⏹ إيقاف جميع البوتات النشطة
-                    </button>
-                    <div class="stop-all-confirm" id="stop-all-confirm" style="display: none;">
-                        <span style="color: #ff9100; font-size: 0.9em; display: block; margin-bottom: 10px; text-align: center;">
-                            ⚠️ هل أنت متأكد من إيقاف جميع البوتات؟
-                        </span>
-                        <div style="display: flex; gap: 10px; justify-content: center;">
-                            <button class="btn-confirm-yes" id="btn-confirm-yes" onclick="confirmStopAll()">
-                                ✅ نعم، أوقف الكل
-                            </button>
-                            <button class="btn-confirm-no" onclick="hideStopAllConfirm()">
-                                ❌ إلغاء
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <button class="btn btn-primary" id="upload-btn" disabled>
-                    <span class="spinner"></span>
-                    <span class="btn-text">⚡ ارفع وشغل البوت</span>
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <button class="btn-tool upload" onclick="document.getElementById('file-input').click()">
+                    ⬆️ رفع ملف
+                </button>
+                <input type="file" id="file-input" accept=".py" multiple>
+                
+                <button class="btn-tool run-all" id="btn-run-all" onclick="runAllFiles()">
+                    ▶️ تشغيل الكل
+                </button>
+                <button class="btn-tool stop-all" id="btn-stop-all" onclick="stopAllFiles()">
+                    ⏹ إيقاف الكل
+                </button>
+                <button class="btn-tool delete-all" id="btn-delete-all" onclick="deleteAllFiles()">
+                    🗑️ حذف الكل
                 </button>
             </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <div class="icon icon-info">ℹ️</div>
-                    <div>
-                        <div class="card-title">معلومات سريعة</div>
-                        <div class="card-subtitle">كل ما تحتاج معرفته</div>
+            <div class="toolbar-right">
+                <button class="btn-menu" id="btn-menu" onclick="toggleMenu()" title="القائمة">☰</button>
+                <div class="dropdown-menu" id="dropdown-menu">
+                    <div class="dropdown-item active" id="menu-files" onclick="switchView('files')">
+                        📁 الملفات
+                    </div>
+                    <div class="dropdown-item" id="menu-console" onclick="switchView('console')">
+                        📋 Console
                     </div>
                 </div>
-
-                <ul class="info-list">
-                    <li class="info-item">
-                        <span class="info-icon">🐍</span>
-                        <div class="info-content">
-                            <div class="info-title">Python 3.11</div>
-                            <div class="info-desc">أحدث إصدار مستقر</div>
-                        </div>
-                    </li>
-                    <li class="info-item">
-                        <span class="info-icon">📚</span>
-                        <div class="info-content">
-                            <div class="info-title">+500 مكتبة</div>
-                            <div class="info-desc">جميع المكتبات مدعومة تلقائياً</div>
-                        </div>
-                    </li>
-                    <li class="info-item">
-                        <span class="info-icon">🔒</span>
-                        <div class="info-content">
-                            <div class="info-title">بيئة معزولة</div>
-                            <div class="info-desc">كل بوت في بيئة افتراضية منفصلة</div>
-                        </div>
-                    </li>
-                    <li class="info-item">
-                        <span class="info-icon">⚡</span>
-                        <div class="info-content">
-                            <div class="info-title">تشغيل 24/7</div>
-                            <div class="info-desc">خوادم مستقرة على مدار الساعة</div>
-                        </div>
-                    </li>
-                </ul>
             </div>
         </div>
 
-        <div class="console-wrapper" id="console-wrapper">
-            <div class="console">
-                <div class="console-header">
-                    <div class="console-header-left">
-                        <div class="status-indicator">
-                            <span class="status-dot idle" id="status-dot"></span>
-                            <span class="status-text" id="status-text">في الانتظار</span>
-                        </div>
-                        <span style="color: var(--text-secondary); font-size: 0.85em;" id="task-id-display"></span>
-                    </div>
-                    <div class="console-controls">
-                        <button class="ctrl-btn run" id="run-btn" style="display:none;">▶ تشغيل</button>
-                        <button class="ctrl-btn stop" id="stop-btn" style="display:none;">⏹ إيقاف</button>
-                        <button class="ctrl-btn stop-all" id="stop-all-btn" style="display:none;">⏹⏹ إيقاف الكل</button>
-                        <button class="ctrl-btn clear" id="clear-btn">🧹 تنظيف</button>
-                    </div>
+        <!-- Content Area -->
+        <div class="content-area" id="content-area">
+            <!-- Files View -->
+            <div class="files-view active" id="files-view">
+                <div class="empty-state" id="files-empty">
+                    <div class="empty-icon">📂</div>
+                    <div class="empty-text">لا توجد ملفات</div>
+                    <div class="empty-hint">اضغط ⬆️ رفع ملف للبدء</div>
                 </div>
+                <div id="files-list"></div>
+            </div>
+
+            <!-- Console View -->
+            <div class="console-view" id="console-view">
                 <div class="console-output" id="console-output">
-                    <span class="info-line">📋 في انتظار رفع ملف Python...</span>
+                    <span class="info-line">📋 Console جاهز... في انتظار تشغيل ملف</span>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        let currentTaskId = localStorage.getItem('flex_taskId') || null;
+        // ========== Global State ==========
+        let userFiles = [];
+        let activeTasks = {};
+        let currentView = 'files';
         let eventSource = null;
-        let selectedFile = null;
-        let activeBotsCount = 0;
+        let longPressTimer = null;
+        let currentConsoleTask = null;
 
-        const uploadArea = document.getElementById('upload-area');
-        const fileInput = document.getElementById('file-input');
-        const uploadBtn = document.getElementById('upload-btn');
-        const fileInfo = document.getElementById('file-info');
-        const fileInfoName = document.getElementById('file-name-display');
-        const fileInfoSize = document.getElementById('file-size-display');
-        const removeFileBtn = document.getElementById('remove-file');
-        const consoleWrapper = document.getElementById('console-wrapper');
+        // ========== DOM Elements ==========
+        const filesView = document.getElementById('files-view');
+        const consoleView = document.getElementById('console-view');
+        const filesList = document.getElementById('files-list');
+        const filesEmpty = document.getElementById('files-empty');
         const consoleOutput = document.getElementById('console-output');
-        const statusDot = document.getElementById('status-dot');
-        const statusText = document.getElementById('status-text');
-        const taskIdDisplay = document.getElementById('task-id-display');
-        const runBtn = document.getElementById('run-btn');
-        const stopBtn = document.getElementById('stop-btn');
-        const stopAllBtn = document.getElementById('stop-all-btn');
-        const clearBtn = document.getElementById('clear-btn');
+        const dropdownMenu = document.getElementById('dropdown-menu');
+        const btnMenu = document.getElementById('btn-menu');
+        const menuFiles = document.getElementById('menu-files');
+        const menuConsole = document.getElementById('menu-console');
+        const contentArea = document.getElementById('content-area');
 
-        function createParticles() {
-            const container = document.getElementById('particles');
-            const count = 30;
-            for (let i = 0; i < count; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.animationDelay = Math.random() * 8 + 's';
-                particle.style.animationDuration = 6 + Math.random() * 8 + 's';
-                container.appendChild(particle);
-            }
-        }
-        createParticles();
-
+        // ========== Toast System ==========
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = `toast toast-${type}`;
+            
             const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
-            toast.textContent = `${icons[type] || ''} ${message}`;
+            toast.innerHTML = `<span>${icons[type] || ''}</span> ${message}`;
+            
             container.appendChild(toast);
-            setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3500);
+            
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateX(50px)';
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, 2800);
         }
 
+        // ========== Menu System ==========
+        function toggleMenu() {
+            const isOpen = dropdownMenu.classList.contains('show');
+            if (isOpen) {
+                closeMenu();
+            } else {
+                dropdownMenu.classList.add('show');
+                btnMenu.classList.add('active');
+            }
+        }
+
+        function closeMenu() {
+            dropdownMenu.classList.remove('show');
+            btnMenu.classList.remove('active');
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!btnMenu.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                closeMenu();
+            }
+        });
+
+        // Close menu on ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeMenu();
+        });
+
+        // ========== View Switching ==========
+        function switchView(view) {
+            currentView = view;
+            closeMenu();
+
+            if (view === 'files') {
+                filesView.classList.add('active');
+                consoleView.classList.remove('active');
+                menuFiles.classList.add('active');
+                menuConsole.classList.remove('active');
+                
+                // Stop console stream
+                if (eventSource) {
+                    eventSource.close();
+                    eventSource = null;
+                }
+                currentConsoleTask = null;
+                
+                loadUserFiles();
+            } else {
+                filesView.classList.remove('active');
+                consoleView.classList.add('active');
+                menuFiles.classList.remove('active');
+                menuConsole.classList.add('active');
+            }
+        }
+
+        // ========== Stats Update ==========
         function updateStats() {
-            document.getElementById('stat-bots').textContent = activeBotsCount;
+            const total = userFiles.length;
+            const running = Object.keys(activeTasks).length;
+            const stopped = total - running;
+            
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-running').textContent = running;
+            document.getElementById('stat-stopped').textContent = stopped;
+            
+            // Calculate storage
+            let totalSize = 0;
+            userFiles.forEach(f => { totalSize += (f.size || 0); });
+            
+            if (totalSize === 0) {
+                document.getElementById('stat-storage').textContent = '0 KB';
+            } else if (totalSize < 1024) {
+                document.getElementById('stat-storage').textContent = totalSize + ' B';
+            } else if (totalSize < 1024 * 1024) {
+                document.getElementById('stat-storage').textContent = (totalSize / 1024).toFixed(1) + ' KB';
+            } else {
+                document.getElementById('stat-storage').textContent = (totalSize / (1024 * 1024)).toFixed(1) + ' MB';
+            }
         }
-        updateStats();
 
-        function showStopAllConfirm() {
-            document.getElementById('stop-all-confirm').style.display = 'block';
-        }
+        // ========== File Upload ==========
+        document.getElementById('file-input').addEventListener('change', async function() {
+            const files = this.files;
+            if (!files.length) return;
 
-        function hideStopAllConfirm() {
-            document.getElementById('stop-all-confirm').style.display = 'none';
-        }
+            let uploaded = 0;
+            
+            for (let file of files) {
+                if (!file.name.endsWith('.py')) {
+                    showToast(`${file.name} - يجب أن يكون ملف Python`, 'error');
+                    continue;
+                }
 
-        async function confirmStopAll() {
-            const btnYes = document.getElementById('btn-confirm-yes');
-            btnYes.disabled = true;
-            btnYes.textContent = '⏳ جاري الإيقاف...';
-            hideStopAllConfirm();
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('auto_run', 'false');
 
-            // إيقاف البوت الحالي إذا كان شغال
-            if (currentTaskId) {
                 try {
-                    const res = await fetch(`/stop/${currentTaskId}`, { method: 'POST' });
+                    const res = await fetch('/upload', { method: 'POST', body: formData });
+                    const data = await res.json();
+                    
                     if (res.ok) {
-                        if (consoleWrapper.style.display !== 'none') {
-                            addLine('\n⛔ تم إيقاف البوت بواسطة زر إيقاف الكل', 'error-line');
-                            statusDot.className = 'status-dot error';
-                            statusText.textContent = 'متوقف';
-                        }
-                        showToast('✅ تم إيقاف البوت بنجاح', 'warning');
+                        uploaded++;
+                    } else {
+                        showToast(`${file.name}: ${data.error}`, 'error');
                     }
                 } catch (err) {
-                    console.log('خطأ في الإيقاف:', err);
+                    showToast(`فشل رفع ${file.name}`, 'error');
                 }
             }
 
-            // إعادة تعيين الواجهة
-            resetAll();
+            this.value = '';
             
-            btnYes.disabled = false;
-            btnYes.textContent = '✅ نعم، أوقف الكل';
-        }
-
-        uploadArea.addEventListener('click', () => fileInput.click());
-
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.classList.add('dragover');
-        });
-
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('dragover');
-        });
-
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.classList.remove('dragover');
-            if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]);
-        });
-
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) handleFile(e.target.files[0]);
-        });
-
-        function handleFile(file) {
-            if (!file.name.endsWith('.py')) {
-                showToast('يرجى اختيار ملف Python بصيغة .py فقط', 'error');
-                return;
+            if (uploaded > 0) {
+                showToast(`تم رفع ${uploaded} ملف بنجاح`, 'success');
             }
-            if (file.size > 100 * 1024 * 1024) {
-                showToast('حجم الملف كبير جداً. الحد الأقصى 100MB', 'error');
-                return;
-            }
-            selectedFile = file;
-            uploadBtn.disabled = false;
-            uploadBtn.querySelector('.btn-text').textContent = '⚡ ارفع وشغل البوت';
-            fileInfo.classList.add('show');
-            fileInfoName.textContent = file.name;
-            fileInfoSize.textContent = formatFileSize(file.size);
-            uploadArea.querySelector('.upload-icon-large').textContent = '🐍';
-            uploadArea.querySelector('.upload-text').textContent = file.name;
-            uploadArea.querySelector('.upload-hint').textContent = 'انقر للتغيير أو ارفع مباشرة';
-        }
-
-        removeFileBtn.addEventListener('click', () => {
-            selectedFile = null;
-            uploadBtn.disabled = true;
-            fileInfo.classList.remove('show');
-            uploadArea.querySelector('.upload-icon-large').textContent = '📁';
-            uploadArea.querySelector('.upload-text').textContent = 'اسحب وأفلت الملف هنا';
-            uploadArea.querySelector('.upload-hint').textContent = 'أو انقر للاختيار - ملفات .py فقط';
-            fileInput.value = '';
-        });
-
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
-
-        uploadBtn.addEventListener('click', async () => {
-            if (!selectedFile) return;
-            uploadBtn.classList.add('loading');
-            uploadBtn.disabled = true;
-            const formData = new FormData();
-            formData.append('file', selectedFile);
-            formData.append('auto_run', document.getElementById('auto-run').checked);
             
+            await loadUserFiles();
+        });
+
+        // ========== Load Files ==========
+        async function loadUserFiles() {
             try {
-                const res = await fetch('/upload', { method: 'POST', body: formData });
+                const res = await fetch('/user-files');
                 const data = await res.json();
                 
                 if (res.ok) {
-                    currentTaskId = data.task_id;
-                    if (document.getElementById('save-session').checked) {
-                        localStorage.setItem('flex_taskId', currentTaskId);
-                    }
-                    consoleWrapper.style.display = 'block';
-                    consoleOutput.innerHTML = '';
-                    taskIdDisplay.textContent = `ID: ${currentTaskId.slice(0, 8)}...`;
-                    startStream(currentTaskId);
-                    showToast('تم رفع الملف بنجاح!', 'success');
-                    statusDot.className = 'status-dot running';
-                    statusText.textContent = 'جاري التشغيل';
-                    activeBotsCount++;
+                    userFiles = data.files || [];
+                    activeTasks = data.active_tasks || {};
+                    renderFiles();
                     updateStats();
-                    if (!document.getElementById('auto-run').checked) runBtn.style.display = 'inline-flex';
-                    stopBtn.style.display = 'inline-flex';
-                    stopAllBtn.style.display = 'inline-flex';
-                    uploadBtn.querySelector('.btn-text').textContent = '✅ تم الرفع والتشغيل';
-                } else {
-                    showToast(data.error || 'حدث خطأ في الرفع', 'error');
-                    resetUploadButton();
                 }
             } catch (err) {
-                showToast('فشل الاتصال بالخادم: ' + err.message, 'error');
-                resetUploadButton();
-            } finally {
-                uploadBtn.classList.remove('loading');
+                console.error('فشل تحميل الملفات:', err);
+            }
+        }
+
+        // ========== Render Files ==========
+        function renderFiles() {
+            if (!userFiles.length) {
+                filesList.innerHTML = '';
+                filesEmpty.style.display = 'block';
+                return;
+            }
+
+            filesEmpty.style.display = 'none';
+            
+            filesList.innerHTML = userFiles.map((f, index) => {
+                const isRunning = activeTasks[f.task_id] === true;
+                const statusClass = isRunning ? 'running' : 'stopped';
+                const statusText = isRunning ? '🟢 شغال' : '⏸️ متوقف';
+                
+                return `
+                    <div class="file-item" id="file-${index}" 
+                         oncontextmenu="return false;"
+                         onmousedown="startLongPress(${index}, event)"
+                         onmouseup="cancelLongPress()"
+                         onmouseleave="cancelLongPress()"
+                         ontouchstart="startLongPress(${index}, event)"
+                         ontouchend="cancelLongPress()"
+                         ontouchmove="cancelLongPress()">
+                        <div class="file-item-left">
+                            <span class="file-icon">🐍</span>
+                            <div class="file-info">
+                                <span class="file-name">${escapeHtml(f.name)}</span>
+                                <span class="file-meta">${f.size_formatted || ''}</span>
+                            </div>
+                        </div>
+                        <span class="file-status ${statusClass}">${statusText}</span>
+                        <button class="delete-btn" onclick="event.stopPropagation(); deleteFile('${f.task_id}', ${index})" title="حذف">
+                            🗑️
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ========== Long Press for Delete ==========
+        function startLongPress(index, event) {
+            // Prevent on right click
+            if (event.type === 'mousedown' && event.button === 2) return;
+            
+            cancelLongPress();
+            
+            longPressTimer = setTimeout(() => {
+                // Hide all other delete buttons
+                document.querySelectorAll('.file-item.show-delete').forEach(el => {
+                    el.classList.remove('show-delete');
+                });
+                
+                // Show delete button for this file
+                const fileItem = document.getElementById(`file-${index}`);
+                if (fileItem) {
+                    fileItem.classList.add('show-delete');
+                    // Haptic feedback if available
+                    if (navigator.vibrate) {
+                        navigator.vibrate(50);
+                    }
+                }
+            }, 700); // 700ms long press
+        }
+
+        function cancelLongPress() {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+        }
+
+        // Click outside to hide delete buttons
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.file-item')) {
+                document.querySelectorAll('.file-item.show-delete').forEach(el => {
+                    el.classList.remove('show-delete');
+                });
             }
         });
 
-        function resetUploadButton() {
-            uploadBtn.disabled = false;
-            uploadBtn.querySelector('.btn-text').textContent = '⚡ ارفع وشغل البوت';
+        // ========== Delete Single File ==========
+        async function deleteFile(taskId, index) {
+            if (!confirm(`🗑️ هل أنت متأكد من حذف "${userFiles[index]?.name}"؟`)) return;
+
+            // Stop if running
+            if (activeTasks[taskId]) {
+                try {
+                    await fetch(`/stop/${taskId}`, { method: 'POST' });
+                    delete activeTasks[taskId];
+                } catch (err) {}
+            }
+
+            try {
+                const res = await fetch(`/delete-file/${taskId}`, { method: 'POST' });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    userFiles.splice(index, 1);
+                    renderFiles();
+                    updateStats();
+                    showToast('تم حذف الملف بنجاح', 'success');
+                } else {
+                    showToast('فشل حذف الملف', 'error');
+                }
+            } catch (err) {
+                showToast('خطأ في الحذف', 'error');
+            }
         }
 
-        function startStream(taskId) {
-            if (eventSource) eventSource.close();
+        // ========== Run All ==========
+        async function runAllFiles() {
+            if (!userFiles.length) {
+                showToast('لا توجد ملفات للتشغيل', 'warning');
+                return;
+            }
+
+            let started = 0;
+            let alreadyRunning = 0;
+
+            for (let f of userFiles) {
+                if (activeTasks[f.task_id]) {
+                    alreadyRunning++;
+                    continue;
+                }
+
+                try {
+                    const res = await fetch(`/run/${f.task_id}`, { method: 'POST' });
+                    if (res.ok) {
+                        activeTasks[f.task_id] = true;
+                        started++;
+                    }
+                } catch (err) {
+                    console.error('فشل تشغيل:', f.name);
+                }
+            }
+
+            renderFiles();
+            updateStats();
+
+            if (started > 0) {
+                showToast(`تم تشغيل ${started} بوت بنجاح`, 'success');
+            } else if (alreadyRunning > 0) {
+                showToast(`جميع الملفات شغالة بالفعل (${alreadyRunning})`, 'info');
+            } else {
+                showToast('فشل تشغيل الملفات', 'error');
+            }
+        }
+
+        // ========== Stop All ==========
+        async function stopAllFiles() {
+            const runningCount = Object.keys(activeTasks).length;
+            
+            if (!runningCount) {
+                showToast('لا توجد بوتات شغالة', 'warning');
+                return;
+            }
+
+            if (!confirm(`⚠️ إيقاف ${runningCount} بوت شغال؟`)) return;
+
+            let stopped = 0;
+
+            for (let f of userFiles) {
+                if (activeTasks[f.task_id]) {
+                    try {
+                        const res = await fetch(`/stop/${f.task_id}`, { method: 'POST' });
+                        if (res.ok) {
+                            delete activeTasks[f.task_id];
+                            stopped++;
+                        }
+                    } catch (err) {
+                        console.error('فشل إيقاف:', f.name);
+                    }
+                }
+            }
+
+            // Also call stop-all endpoint
+            try {
+                await fetch('/stop-all', { method: 'POST' });
+            } catch (err) {}
+
+            // Clear all active tasks
+            activeTasks = {};
+            
+            renderFiles();
+            updateStats();
+            
+            if (stopped > 0) {
+                showToast(`تم إيقاف ${stopped} بوت`, 'warning');
+            }
+        }
+
+        // ========== Delete All ==========
+        async function deleteAllFiles() {
+            if (!userFiles.length) {
+                showToast('لا توجد ملفات للحذف', 'warning');
+                return;
+            }
+
+            if (!confirm(`⚠️ تحذير: سيتم حذف جميع الملفات (${userFiles.length} ملف) بشكل نهائي!\nهل أنت متأكد؟`)) return;
+
+            // Stop all first
+            for (let f of userFiles) {
+                if (activeTasks[f.task_id]) {
+                    try {
+                        await fetch(`/stop/${f.task_id}`, { method: 'POST' });
+                    } catch (err) {}
+                }
+            }
+
+            let deleted = 0;
+
+            for (let f of [...userFiles]) {
+                try {
+                    const res = await fetch(`/delete-file/${f.task_id}`, { method: 'POST' });
+                    if (res.ok) deleted++;
+                } catch (err) {
+                    console.error('فشل حذف:', f.name);
+                }
+            }
+
+            userFiles = [];
+            activeTasks = {};
+            
+            renderFiles();
+            updateStats();
+            
+            showToast(`تم حذف ${deleted} ملف`, 'success');
+        }
+
+        // ========== Stream Console ==========
+        function startConsoleStream(taskId) {
+            if (eventSource) {
+                eventSource.close();
+            }
+            
+            currentConsoleTask = taskId;
+            consoleOutput.innerHTML = '';
+            
             eventSource = new EventSource(`/output/${taskId}`);
             
             eventSource.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                
-                if (data.type === 'output') addLine(data.text, 'output-line');
-                else if (data.type === 'error') addLine(data.text, 'error-line');
-                else if (data.type === 'complete') {
-                    addLine('═'.repeat(50), 'info-line');
-                    if (data.success) {
-                        addLine('✅ تم الانتهاء بنجاح', 'success-line');
-                        statusDot.className = 'status-dot completed';
-                        statusText.textContent = 'مكتمل';
-                    } else {
-                        addLine('❌ انتهى البوت مع أخطاء', 'error-line');
-                        statusDot.className = 'status-dot error';
-                        statusText.textContent = 'خطأ';
+                try {
+                    const data = JSON.parse(event.data);
+                    
+                    if (data.type === 'output') {
+                        appendConsoleLine(data.text, '');
+                    } else if (data.type === 'error') {
+                        appendConsoleLine(data.text, 'error-line');
+                    } else if (data.type === 'complete') {
+                        if (data.success) {
+                            appendConsoleLine('✅ اكتمل التشغيل بنجاح', 'success-line');
+                        } else {
+                            appendConsoleLine('❌ انتهى التشغيل مع أخطاء', 'error-line');
+                        }
+                        eventSource.close();
+                        eventSource = null;
                     }
-                    addLine('═'.repeat(50), 'info-line');
-                    stopBtn.style.display = 'none';
-                    stopAllBtn.style.display = 'none';
-                    runBtn.style.display = 'inline-flex';
-                    activeBotsCount = Math.max(0, activeBotsCount - 1);
-                    updateStats();
-                    if (document.getElementById('save-session').checked) localStorage.removeItem('flex_taskId');
-                    eventSource.close();
-                }
-                if (data.running) {
-                    statusDot.className = 'status-dot running';
-                    statusText.textContent = 'شغال';
-                }
+                } catch (e) {}
             };
             
-            eventSource.onerror = () => console.log('انقطع الاتصال، جاري إعادة المحاولة...');
+            eventSource.onerror = () => {
+                console.log('Console stream disconnected');
+                if (eventSource) {
+                    eventSource.close();
+                    eventSource = null;
+                }
+            };
         }
 
-        function addLine(text, className = 'output-line') {
+        function appendConsoleLine(text, className) {
             const line = document.createElement('div');
             line.className = className;
             line.textContent = text;
             consoleOutput.appendChild(line);
             consoleOutput.scrollTop = consoleOutput.scrollHeight;
-            while (consoleOutput.children.length > 1000) consoleOutput.removeChild(consoleOutput.firstChild);
-        }
-
-        runBtn.addEventListener('click', async () => {
-            if (!currentTaskId) return;
-            runBtn.disabled = true;
-            runBtn.textContent = '⏳ جاري...';
-            try {
-                const res = await fetch(`/run/${currentTaskId}`, { method: 'POST' });
-                const data = await res.json();
-                if (res.ok) {
-                    consoleOutput.innerHTML = '';
-                    startStream(currentTaskId);
-                    runBtn.style.display = 'none';
-                    stopBtn.style.display = 'inline-flex';
-                    stopAllBtn.style.display = 'inline-flex';
-                    statusDot.className = 'status-dot running';
-                    statusText.textContent = 'جاري التشغيل';
-                    activeBotsCount++;
-                    updateStats();
-                    addLine('🔄 جاري تشغيل البوت...', 'info-line');
-                } else {
-                    showToast(data.error || 'فشل التشغيل', 'error');
-                }
-            } catch (err) {
-                showToast('فشل: ' + err.message, 'error');
-            } finally {
-                runBtn.disabled = false;
-                runBtn.textContent = '▶ تشغيل';
-            }
-        });
-
-        stopBtn.addEventListener('click', async () => {
-            if (!currentTaskId) return;
-            if (!confirm('⚠️ هل أنت متأكد من إيقاف البوت؟')) return;
-            stopBtn.disabled = true;
-            stopBtn.textContent = '⏳...';
-            try {
-                const res = await fetch(`/stop/${currentTaskId}`, { method: 'POST' });
-                if (res.ok) {
-                    addLine('\n⛔ تم إيقاف البوت', 'error-line');
-                    statusDot.className = 'status-dot error';
-                    statusText.textContent = 'متوقف';
-                    stopBtn.style.display = 'none';
-                    stopAllBtn.style.display = 'none';
-                    runBtn.style.display = 'inline-flex';
-                    activeBotsCount = Math.max(0, activeBotsCount - 1);
-                    updateStats();
-                    if (document.getElementById('save-session').checked) localStorage.removeItem('flex_taskId');
-                    if (eventSource) { eventSource.close(); eventSource = null; }
-                    showToast('تم إيقاف البوت', 'warning');
-                }
-            } catch (err) {
-                showToast('فشل: ' + err.message, 'error');
-            } finally {
-                stopBtn.disabled = false;
-                stopBtn.textContent = '⏹ إيقاف';
-            }
-        });
-
-        stopAllBtn.addEventListener('click', () => showStopAllConfirm());
-
-        clearBtn.addEventListener('click', () => {
-            if (currentTaskId && document.getElementById('save-session').checked) {
-                if (!confirm('تنظيف الجلسة؟ ستفقد البوت الحالي.')) return;
-            }
-            resetAll();
-        });
-
-        function resetAll() {
-            currentTaskId = null;
-            selectedFile = null;
-            localStorage.removeItem('flex_taskId');
-            uploadBtn.disabled = true;
-            uploadBtn.querySelector('.btn-text').textContent = '⚡ ارفع وشغل البوت';
-            fileInfo.classList.remove('show');
-            consoleWrapper.style.display = 'none';
-            consoleOutput.innerHTML = '<span class="info-line">📋 في انتظار رفع ملف Python...</span>';
-            statusDot.className = 'status-dot idle';
-            statusText.textContent = 'في الانتظار';
-            taskIdDisplay.textContent = '';
-            runBtn.style.display = 'none';
-            stopBtn.style.display = 'none';
-            stopAllBtn.style.display = 'none';
-            activeBotsCount = 0;
-            updateStats();
-            uploadArea.querySelector('.upload-icon-large').textContent = '📁';
-            uploadArea.querySelector('.upload-text').textContent = 'اسحب وأفلت الملف هنا';
-            uploadArea.querySelector('.upload-hint').textContent = 'أو انقر للاختيار - ملفات .py فقط';
-            fileInput.value = '';
-            if (eventSource) { eventSource.close(); eventSource = null; }
-        }
-
-        async function checkActiveSession() {
-            if (!currentTaskId) return;
-            try {
-                const res = await fetch(`/status/${currentTaskId}`);
-                const data = await res.json();
-                if (res.ok && data.running && !data.completed) {
-                    consoleWrapper.style.display = 'block';
-                    consoleOutput.innerHTML = '';
-                    taskIdDisplay.textContent = `ID: ${currentTaskId.slice(0, 8)}...`;
-                    if (data.output_list) data.output_list.forEach(line => addLine(line, 'output-line'));
-                    if (data.error_list) data.error_list.forEach(line => addLine(line, 'error-line'));
-                    startStream(currentTaskId);
-                    statusDot.className = 'status-dot running';
-                    statusText.textContent = 'شغال (تم الاستعادة)';
-                    stopBtn.style.display = 'inline-flex';
-                    stopAllBtn.style.display = 'inline-flex';
-                    runBtn.style.display = 'none';
-                    activeBotsCount = 1;
-                    updateStats();
-                    showToast('تم استعادة الجلسة السابقة', 'info');
-                } else if (data.completed) {
-                    localStorage.removeItem('flex_taskId');
-                    currentTaskId = null;
-                }
-            } catch (err) {
-                console.log('تعذر التحقق من الجلسة السابقة');
-                localStorage.removeItem('flex_taskId');
-                currentTaskId = null;
+            
+            // Limit lines
+            while (consoleOutput.children.length > 1000) {
+                consoleOutput.removeChild(consoleOutput.firstChild);
             }
         }
 
+        // ========== Keyboard Shortcuts ==========
         document.addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.key === 'o') { e.preventDefault(); fileInput.click(); }
-            if (e.ctrlKey && e.key === 'Enter' && selectedFile) { e.preventDefault(); uploadBtn.click(); }
+            // Ctrl+Shift+U = Upload
+            if (e.ctrlKey && e.shiftKey && e.key === 'U') {
+                e.preventDefault();
+                document.getElementById('file-input').click();
+            }
+            // Ctrl+Shift+R = Run All
+            if (e.ctrlKey && e.shiftKey && e.key === 'R') {
+                e.preventDefault();
+                runAllFiles();
+            }
+            // Ctrl+Shift+S = Stop All
+            if (e.ctrlKey && e.shiftKey && e.key === 'S') {
+                e.preventDefault();
+                stopAllFiles();
+            }
+            // Ctrl+Shift+D = Delete All
+            if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+                e.preventDefault();
+                deleteAllFiles();
+            }
+            // Ctrl+` = Toggle Console/Files
+            if (e.ctrlKey && e.key === '`') {
+                e.preventDefault();
+                switchView(currentView === 'files' ? 'console' : 'files');
+            }
         });
 
-        checkActiveSession();
-        updateStats();
-        
-        console.log('%c⚡ Flex Host Pro %cDashboard Ready', 'color: #667eea; font-size: 1.2em; font-weight: bold;', 'color: #aaa;');
-        console.log('%c🖥️ Developed with passion for Python Developers', 'color: #764ba2;');
+        // ========== Auto Refresh ==========
+        // Refresh file list every 15 seconds
+        setInterval(async () => {
+            if (currentView === 'files') {
+                try {
+                    const res = await fetch('/user-files');
+                    const data = await res.json();
+                    if (res.ok) {
+                        const oldActiveCount = Object.keys(activeTasks).length;
+                        activeTasks = data.active_tasks || {};
+                        const newActiveCount = Object.keys(activeTasks).length;
+                        
+                        // Only re-render if active tasks changed
+                        if (oldActiveCount !== newActiveCount) {
+                            renderFiles();
+                            updateStats();
+                        }
+                    }
+                } catch (err) {}
+            }
+        }, 15000);
+
+        // ========== Init ==========
+        async function init() {
+            await loadUserFiles();
+            updateStats();
+            
+            console.log('%c⚡ Flex Host Pro %cReady',
+                'color: #667eea; font-size: 1.3em; font-weight: bold;',
+                'color: #aaa;');
+            console.log('%c🖥️ Ctrl+Shift+U رفع | Ctrl+Shift+R تشغيل | Ctrl+Shift+S إيقاف | Ctrl+` تبديل العرض',
+                'color: #764ba2; font-size: 0.85em;');
+        }
+
+        init();
     </script>
 </body>
     </html>
